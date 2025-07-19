@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/tv/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>empty.rocks/tv - Stream Movies & TV Shows</title>
+    <title>empty.tv - Stream Movies & TV Shows</title>
     <meta
       name="description"
       content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design."
@@ -16,29 +16,29 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="http://empty.rocks/tv/" />
-    <meta
-      property="og:title"
-      content="empty.rocks/tv - Stream Movies & TV Shows"
-    />
+    <meta property="og:url" content="https://emptier-lab.github.io/empty.tv/" />
+    <meta property="og:title" content="empty.tv - Stream Movies & TV Shows" />
     <meta
       property="og:description"
       content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design."
     />
-    <meta property="og:image" content="/tv/og-image.png" />
+    <meta property="og:image" content="./og-image.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="http://empty.rocks/tv/" />
+    <meta
+      property="twitter:url"
+      content="https://emptier-lab.github.io/empty.tv/"
+    />
     <meta
       property="twitter:title"
-      content="empty.rocks/tv - Stream Movies & TV Shows"
+      content="empty.tv - Stream Movies & TV Shows"
     />
     <meta
       property="twitter:description"
       content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design."
     />
-    <meta property="twitter:image" content="/tv/og-image.png" />
+    <meta property="twitter:image" content="./og-image.png" />
 
     <!-- Theme Color -->
     <meta name="theme-color" content="#3b82f6" />
@@ -52,21 +52,21 @@
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="/tv/apple-touch-icon.png"
+      href="./apple-touch-icon.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="/tv/favicon-32x32.png"
+      href="./favicon-32x32.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="/tv/favicon-16x16.png"
+      href="./favicon-16x16.png"
     />
-    <link rel="manifest" href="/tv/site.webmanifest" />
+    <link rel="manifest" href="./site.webmanifest" />
 
     <!-- Fonts -->
     <link
@@ -144,19 +144,50 @@
       <div class="loading-container">
         <div>
           <div class="loading-spinner"></div>
-          <div class="loading-text">Loading empty.rocks/tv...</div>
+          <div class="loading-text">Loading empty.tv...</div>
         </div>
       </div>
     </div>
 
-    <script type="module" src="/tv/src/main.js"></script>
+    <!-- GitHub Pages SPA routing script -->
+    <script>
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+
+      // This script checks to see if a redirect is present in the query string,
+      // converts it back into the correct url and adds it to the
+      // browser's history using window.history.replaceState(...),
+      // which won't cause the browser to attempt to load the new url.
+      // When the single page app is loaded further down in this file,
+      // the correct url will be waiting in the browser's history for
+      // the single page app to route accordingly.
+      (function (l) {
+        if (l.search[1] === "/") {
+          var decoded = l.search
+            .slice(1)
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash,
+          );
+        }
+      })(window.location);
+    </script>
+
+    <script type="module" src="./src/main.js"></script>
 
     <!-- Service Worker Registration -->
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("/tv/sw.js")
+            .register("./sw.js")
             .then((registration) => {
               console.log("SW registered: ", registration);
             })

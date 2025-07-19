@@ -1,0 +1,67 @@
+# GitHub Pages Configuration for empty.tv
+
+# Site settings
+title: empty.tv
+description: Stream movies and TV shows from multiple sources. Modern streaming platform with responsive design.
+url: "https://emptier-lab.github.io"
+baseurl: "/empty.tv"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Exclude files from processing
+exclude:
+  - node_modules
+  - package.json
+  - package-lock.json
+  - vite.config.js
+  - src
+  - public
+  - .github
+  - README.md
+  - DEPLOYMENT.md
+  - DEPLOY-SUMMARY.md
+
+# Include files
+include:
+  - _redirects
+
+# Collections
+collections_dir: collections
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+# GitHub Pages specific
+github_username: emptier-lab
+repository: empty.tv
+
+# SEO
+author: empty.tv Team
+twitter:
+  username: emptytv
+  card: summary_large_image
+
+social:
+  name: empty.tv
+  links:
+    - https://github.com/emptier-lab/empty.tv
+
+# Analytics (optional)
+# google_analytics: UA-XXXXXXXX-X
+
+# Theme
+theme: minima

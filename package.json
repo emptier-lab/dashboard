@@ -7,8 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "build:rocks": "vite build --base=/tv/",
+    "build:pages": "vite build --base=/empty.tv/",
     "preview": "vite preview",
     "preview:rocks": "vite preview --base=/tv/",
+    "preview:pages": "vite preview --base=/empty.tv/",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
@@ -46,5 +48,5 @@
   "bugs": {
     "url": "https://github.com/emptier-lab/empty.tv/issues"
   },
-  "homepage": "http://empty.rocks/tv"
+  "homepage": "https://emptier-lab.github.io/empty.tv"
 }

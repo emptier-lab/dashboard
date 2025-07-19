@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from "node:url";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/tv/",
+  base: process.env.NODE_ENV === "production" ? "/empty.tv/" : "/tv/",
   plugins: [
     vue(),
     vuetify({

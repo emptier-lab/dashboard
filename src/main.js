@@ -100,7 +100,9 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory("/tv/"),
+  history: createWebHistory(
+    process.env.NODE_ENV === "production" ? "/empty.tv/" : "/tv/",
+  ),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
