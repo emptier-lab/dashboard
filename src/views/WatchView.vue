@@ -420,7 +420,7 @@ export default {
 <style scoped>
 .watch-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1A1D29 0%, #2D1B42 100%);
+  background: #1A1D29;
 }
 
 .navigation-bar {

@@ -90,23 +90,7 @@
           </p>
         </v-col>
         <v-col cols="12" md="4" class="text-md-right">
-          <div class="footer-badges">
-            <v-chip
-              size="small"
-              color="primary"
-              variant="outlined"
-              class="mr-2"
-            >
-              Vue 3
-            </v-chip>
-            <v-chip
-              size="small"
-              color="secondary"
-              variant="outlined"
-            >
-              Vuetify 3
-            </v-chip>
-          </div>
+          <!-- Technology badges removed for cleaner footer -->
         </v-col>
       </v-row>
     </v-container>
@@ -238,19 +222,9 @@ export default {
   margin-bottom: 0;
 }
 
-.footer-badges {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
+
 
 @media (max-width: 768px) {
-  .footer-badges {
-    justify-content: flex-start;
-    margin-top: 0;
-  }
-
   .footer-section {
     margin-bottom: 1rem;
   }

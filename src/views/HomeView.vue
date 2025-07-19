@@ -135,7 +135,7 @@ export default {
   min-height: 80vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(108, 92, 231, 0.1) 100%);
+  background: rgba(26, 29, 41, 0.95);
   position: relative;
   overflow: hidden;
 }
@@ -239,7 +239,7 @@ export default {
 
 .test-section {
   padding: 4rem 0;
-  background: linear-gradient(135deg, rgba(108, 92, 231, 0.1) 0%, rgba(253, 121, 168, 0.1) 100%);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .section-subtitle {

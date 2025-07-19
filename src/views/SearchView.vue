@@ -3,7 +3,10 @@
     <v-container>
       <!-- Search Header -->
       <div class="search-header">
-        <h1 class="page-title">Search</h1>
+        <h1 class="page-title">
+          <v-icon icon="mdi-magnify" class="mr-3" />
+          Search
+        </h1>
         <p class="page-subtitle">Find your favorite movies and TV shows</p>
       </div>
 
@@ -305,9 +308,9 @@ export default {
 
 <style scoped>
 .search-view {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1A1D29 0%, #2D1B42 100%);
-  padding: 80px 0 40px 0;
+  min-height: 120vh;
+  background: #1A1D29;
+  padding: 80px 0 20px 0;
 }
 
 .search-header {

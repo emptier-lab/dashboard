@@ -2,7 +2,10 @@
   <div class="watchlist-view">
     <v-container>
       <div class="page-header">
-        <h1 class="page-title">Watchlist</h1>
+        <h1 class="page-title">
+          <v-icon icon="mdi-bookmark" class="mr-3" />
+          Watchlist
+        </h1>
         <p class="page-subtitle">Movies and TV shows you want to watch later</p>
       </div>
 
@@ -29,6 +32,7 @@
         <h2>Your watchlist is empty</h2>
         <p>Add movies and TV shows you want to watch later!</p>
         <v-btn @click="$router.push('/')" color="primary" variant="outlined">
+          <v-icon icon="mdi-compass" class="mr-2" />
           Browse Content
         </v-btn>
       </div>
@@ -66,9 +70,9 @@ export default {
 
 <style scoped>
 .watchlist-view {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1A1D29 0%, #2D1B42 100%);
-  padding: 80px 0 40px 0;
+  min-height: 120vh;
+  background: #1A1D29;
+  padding: 80px 0 20px 0;
 }
 
 .page-header {

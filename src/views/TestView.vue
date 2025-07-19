@@ -197,7 +197,7 @@ export default {
 <style scoped>
 .test-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1A1D29 0%, #2D1B42 100%);
+  background: #1A1D29;
   padding: 2rem 0;
 }
 

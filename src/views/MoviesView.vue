@@ -3,7 +3,10 @@
     <v-container>
       <!-- Header -->
       <div class="page-header">
-        <h1 class="page-title">Movies</h1>
+        <h1 class="page-title">
+          <v-icon icon="mdi-movie" class="mr-3" />
+          Movies
+        </h1>
         <p class="page-subtitle">Discover the latest and greatest movies</p>
       </div>
 
@@ -17,6 +20,7 @@
               label="Category"
               variant="outlined"
               density="compact"
+              prepend-inner-icon="mdi-folder"
               @update:model-value="loadMovies"
             />
           </v-col>
@@ -27,6 +31,7 @@
               label="Genre"
               variant="outlined"
               density="compact"
+              prepend-inner-icon="mdi-tag"
               @update:model-value="loadMovies"
             />
           </v-col>
@@ -37,6 +42,7 @@
               label="Year"
               variant="outlined"
               density="compact"
+              prepend-inner-icon="mdi-calendar"
               @update:model-value="loadMovies"
             />
           </v-col>
@@ -47,6 +53,7 @@
               label="Sort By"
               variant="outlined"
               density="compact"
+              prepend-inner-icon="mdi-sort"
               @update:model-value="loadMovies"
             />
           </v-col>
@@ -80,6 +87,7 @@
             variant="outlined"
             size="large"
           >
+            <v-icon icon="mdi-reload" class="mr-2" />
             Load More Movies
           </v-btn>
         </div>
@@ -97,6 +105,7 @@
         <h2>Failed to load movies</h2>
         <p>{{ error }}</p>
         <v-btn @click="loadMovies" color="primary" variant="outlined">
+          <v-icon icon="mdi-refresh" class="mr-2" />
           Try Again
         </v-btn>
       </div>
@@ -305,9 +314,9 @@ export default {
 
 <style scoped>
 .movies-view {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1A1D29 0%, #2D1B42 100%);
-  padding: 80px 0 40px 0;
+  min-height: 120vh;
+  background: #1A1D29;
+  padding: 80px 0 20px 0;
 }
 
 .page-header {
@@ -329,9 +338,8 @@ export default {
 }
 
 .filter-section {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 40px;
