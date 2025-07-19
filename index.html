@@ -1,26 +1,44 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/tv/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>empty.tv - Stream Movies & TV Shows</title>
-    <meta name="description" content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design." />
-    <meta name="keywords" content="movies, tv shows, streaming, watch online, free movies, empty.tv" />
+    <title>empty.rocks/tv - Stream Movies & TV Shows</title>
+    <meta
+      name="description"
+      content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design."
+    />
+    <meta
+      name="keywords"
+      content="movies, tv shows, streaming, watch online, free movies, empty.tv"
+    />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://empty.tv/" />
-    <meta property="og:title" content="empty.tv - Stream Movies & TV Shows" />
-    <meta property="og:description" content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design." />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:url" content="https://empty.rocks/tv/" />
+    <meta
+      property="og:title"
+      content="empty.rocks/tv - Stream Movies & TV Shows"
+    />
+    <meta
+      property="og:description"
+      content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design."
+    />
+    <meta property="og:image" content="/tv/og-image.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://empty.tv/" />
-    <meta property="twitter:title" content="empty.tv - Stream Movies & TV Shows" />
-    <meta property="twitter:description" content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design." />
-    <meta property="twitter:image" content="/og-image.png" />
+    <meta property="twitter:url" content="https://empty.rocks/tv/" />
+    <meta
+      property="twitter:title"
+      content="empty.rocks/tv - Stream Movies & TV Shows"
+    />
+    <meta
+      property="twitter:description"
+      content="Watch movies and TV shows from multiple sources. Modern streaming platform with VidLink support and responsive design."
+    />
+    <meta property="twitter:image" content="/tv/og-image.png" />
 
     <!-- Theme Color -->
     <meta name="theme-color" content="#3b82f6" />
@@ -31,13 +49,30 @@
     <link rel="preconnect" href="https://api.themoviedb.org" />
 
     <!-- Favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/tv/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/tv/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/tv/favicon-16x16.png"
+    />
+    <link rel="manifest" href="/tv/site.webmanifest" />
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
       /* Critical CSS for faster initial render */
@@ -48,7 +83,7 @@
       }
 
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: "Inter", sans-serif;
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         color: white;
         overflow-x: hidden;
@@ -82,8 +117,12 @@
       }
 
       @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
 
       .loading-text {
@@ -105,23 +144,24 @@
       <div class="loading-container">
         <div>
           <div class="loading-spinner"></div>
-          <div class="loading-text">Loading empty.tv...</div>
+          <div class="loading-text">Loading empty.rocks/tv...</div>
         </div>
       </div>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/tv/src/main.js"></script>
 
     <!-- Service Worker Registration -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/tv/sw.js")
             .then((registration) => {
-              console.log('SW registered: ', registration);
+              console.log("SW registered: ", registration);
             })
             .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
+              console.log("SW registration failed: ", registrationError);
             });
         });
       }

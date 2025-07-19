@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:rocks": "vite build --base=/tv/",
     "preview": "vite preview",
+    "preview:rocks": "vite preview --base=/tv/",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
@@ -39,10 +41,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/empty.tv.git"
+    "url": "https://github.com/emptier-lab/empty.tv.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/empty.tv/issues"
+    "url": "https://github.com/emptier-lab/empty.tv/issues"
   },
-  "homepage": "https://github.com/yourusername/empty.tv#readme"
+  "homepage": "https://empty.rocks/tv"
 }
