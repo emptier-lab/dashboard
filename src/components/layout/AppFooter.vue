@@ -9,7 +9,7 @@
         <v-col cols="12" md="4" class="footer-section">
           <div class="footer-logo">
             <v-icon icon="mdi-play-circle" size="28" color="primary" />
-            <span class="footer-logo-text">Empty.tv</span>
+            <span class="footer-logo-text">empty.tv</span>
           </div>
           <p class="footer-description">
             Your gateway to unlimited entertainment. Stream movies and TV shows from multiple sources.
@@ -83,7 +83,7 @@
       <v-row align="center">
         <v-col cols="12" md="8">
           <p class="footer-copyright">
-            © {{ currentYear }} Empty.tv. Made with ❤️ for movie lovers.
+            © {{ currentYear }} empty.tv. Made with ❤️ for movie lovers.
           </p>
           <p class="footer-disclaimer">
             This site does not host any content. All videos are provided by third-party sources.

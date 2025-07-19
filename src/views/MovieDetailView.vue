@@ -151,7 +151,7 @@
                     md="3"
                     lg="2"
                   >
-                    <div class="cast-card">
+                    <div class="cast-card" @click="goToPerson(person.id)">
                       <v-img
                         :src="getProfileUrl(person.profile_path)"
                         :alt="person.name"
@@ -170,24 +170,18 @@
             </div>
 
             <!-- Similar Movies -->
-            <div v-if="similar.length" class="section-card">
+            <div v-if="similar.length" class="section-card similar-movies-section">
               <h2 class="section-title">Similar Movies</h2>
-              <v-row>
-                <v-col
+              <div class="media-grid media-grid--large">
+                <MediaCard
                   v-for="similarMovie in similar"
                   :key="similarMovie.id"
-                  cols="6"
-                  sm="4"
-                  md="3"
-                  lg="2"
-                >
-                  <MediaCard
-                    :item="similarMovie"
-                    media-type="movie"
-                    @click="goToMovie(similarMovie.id)"
-                  />
-                </v-col>
-              </v-row>
+                  :item="similarMovie"
+                  media-type="movie"
+                  @click="goToMovie(similarMovie.id)"
+                  class="similar-movie-card"
+                />
+              </div>
             </div>
           </v-col>
 
@@ -355,6 +349,10 @@ export default {
       router.push(`/movie/${movieId}`)
     }
 
+    function goToPerson(personId) {
+      router.push(`/person/${personId}`)
+    }
+
     function getPosterUrl(path) {
       return imageService.getPosterUrl(path, 'w500')
     }
@@ -426,7 +424,8 @@ export default {
       formatRuntime,
       formatDate,
       getYear,
-      formatMoney
+      formatMoney,
+      goToPerson
     }
   }
 }
@@ -435,12 +434,12 @@ export default {
 <style scoped>
 .movie-detail-view {
   min-height: 100vh;
-  background: #1A1D29;
+  background: var(--background-color);
 }
 
 .hero-section {
   position: relative;
-  min-height: 60vh;
+  min-height: 70vh;
   overflow: hidden;
 }
 
@@ -456,6 +455,7 @@ export default {
 .hero-image {
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
 .hero-overlay {
@@ -464,168 +464,249 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(26, 29, 41, 0.9) 0%,
-    rgba(26, 29, 41, 0.7) 50%,
-    rgba(26, 29, 41, 0.3) 100%
-  );
+  background: rgba(15, 15, 35, 0.85);
   z-index: 2;
 }
 
 .hero-content {
   position: relative;
   z-index: 3;
-  padding-top: 120px;
-  padding-bottom: 60px;
+  padding: 140px 0 80px;
 }
 
 .poster-card {
-  border-radius: 12px;
+  border-radius: var(--border-radius-lg);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  transition: transform 0.3s ease;
+  box-shadow: var(--shadow-xl);
+  transition: transform var(--transition-normal);
+  background: var(--glass-effect);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
 }
 
 .poster-card:hover {
-  transform: scale(1.05);
+  transform: scale(1.03) translateY(-8px);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.5);
 }
 
 .poster-image {
-  border-radius: 12px;
+  border-radius: var(--border-radius-lg);
 }
 
 .movie-info {
-  padding: 20px 0;
+  padding: 32px 0;
 }
 
 .movie-title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: #FFFFFF;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .movie-tagline {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-style: italic;
-  margin-bottom: 20px;
-  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 24px;
+  color: var(--accent-color);
+  font-weight: 500;
 }
 
 .movie-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
 .meta-item {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 8px 16px;
+  background: var(--glass-effect);
+  border-radius: var(--border-radius-sm);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
 }
 
 .movie-overview {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 32px;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 800px;
+  font-size: 1.125rem;
+  line-height: 1.7;
+  margin-bottom: 40px;
+  color: var(--text-secondary);
+  max-width: 900px;
+  text-align: justify;
 }
 
 .movie-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
 }
 
 .player-section {
-  padding: 40px 0;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--border-radius-xl);
+  margin: 40px 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.player-section .v-container {
+  max-width: 100%;
+  padding: 0;
 }
 
 .details-section {
-  padding: 40px 0 80px 0;
+  padding: 60px 0 100px 0;
 }
 
 .section-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 32px;
+  background: var(--glass-effect);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-lg);
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  transition: all var(--transition-normal);
+}
+
+.section-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(102, 126, 234, 0.3);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.similar-movies-section {
+  width: 100%;
+  overflow: hidden;
 }
 
 .section-title {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 24px;
-  color: #00D4AA;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 2px;
+}
+
+.similar-movie-card {
+  transition: all var(--transition-normal);
+}
+
+.similar-movie-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  z-index: 10;
 }
 
 .crew-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .crew-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #FFFFFF;
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--accent-color);
+  letter-spacing: -0.01em;
 }
 
 .crew-list {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .cast-section {
-  margin-top: 32px;
+  margin-top: 48px;
 }
 
 .cast-card {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-normal);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.cast-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-4px);
+  border-color: rgba(102, 126, 234, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .cast-image {
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-md);
 }
 
 .cast-name {
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #FFFFFF;
-  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  letter-spacing: -0.01em;
 }
 
 .cast-character {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  color: var(--text-muted);
   margin-bottom: 0;
+  font-style: italic;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
-  gap: 4px;
+  margin-bottom: 20px;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .info-item strong {
-  color: #00D4AA;
-  font-size: 0.9rem;
+  color: var(--accent-color);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .info-item span,
 .production-companies,
 .languages {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .trailer-container {
@@ -633,7 +714,9 @@ export default {
   padding-bottom: 56.25%;
   height: 0;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .trailer-iframe {
@@ -642,7 +725,8 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
+  border-radius: var(--border-radius-lg);
+  border: none;
 }
 
 .loading-container,
@@ -653,51 +737,182 @@ export default {
   justify-content: center;
   min-height: 80vh;
   text-align: center;
-  color: white;
+  color: var(--text-primary);
+  padding: 2rem;
 }
 
 .loading-text {
-  margin-top: 16px;
-  font-size: 1.1rem;
+  margin-top: 24px;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .error-container h2 {
-  margin: 16px 0 8px 0;
-  color: #FFFFFF;
+  margin: 24px 0 12px 0;
+  color: var(--text-primary);
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .error-container p {
-  margin-bottom: 24px;
-  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 32px;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  max-width: 500px;
 }
 
-@media (max-width: 960px) {
-  .movie-title {
-    font-size: 2.5rem;
-  }
-
+@media (max-width: 1200px) {
   .hero-content {
-    padding-top: 80px;
-    padding-bottom: 40px;
+    padding: 120px 0 60px;
   }
 
   .section-card {
-    padding: 20px;
+    padding: 2rem;
+  }
+
+  .movie-info {
+    padding: 24px 0;
+  }
+}
+
+@media (max-width: 960px) {
+  .hero-content {
+    padding: 100px 0 50px;
+  }
+
+  .section-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .movie-meta {
+    gap: 12px;
+  }
+
+  .meta-item {
+    font-size: 1rem;
+    padding: 6px 12px;
+  }
+
+  .movie-overview {
+    font-size: 1rem;
+    margin-bottom: 32px;
+  }
+
+  .cast-card {
+    padding: 12px;
+  }
+
+  .info-item {
+    padding: 12px;
+    margin-bottom: 16px;
   }
 }
 
 @media (max-width: 600px) {
-  .movie-title {
-    font-size: 2rem;
+  .hero-content {
+    padding: 80px 0 40px;
   }
 
   .movie-actions {
     flex-direction: column;
+    gap: 12px;
   }
 
   .movie-actions .v-btn {
     width: 100%;
-    margin-bottom: 8px;
+  }
+
+  .section-card {
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .movie-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .meta-item {
+    width: 100%;
+    text-align: center;
+  }
+
+  .movie-overview {
+    text-align: left;
+    margin-bottom: 24px;
+  }
+
+  .cast-card {
+    padding: 8px;
+    margin-bottom: 16px;
+  }
+
+  .cast-name {
+    font-size: 0.9rem;
+  }
+
+  .cast-character {
+    font-size: 0.8rem;
+  }
+
+  .info-item {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  .info-item strong {
+    font-size: 0.9rem;
+  }
+
+  .info-item span,
+  .production-companies,
+  .languages {
+    font-size: 0.9rem;
+  }
+
+  .crew-section {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .crew-title {
+    font-size: 1.25rem;
+  }
+
+  .crew-list {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-card {
+    padding: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .movie-title {
+    text-align: center;
+  }
+
+  .movie-tagline {
+    text-align: center;
+    font-size: 1.125rem;
+  }
+
+  .poster-card {
+    max-width: 280px;
+    margin: 0 auto;
   }
 }
 </style>

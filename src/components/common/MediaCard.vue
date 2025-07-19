@@ -29,7 +29,7 @@
         <div class="media-card__overlay">
           <v-btn
             icon="mdi-play-circle"
-            size="large"
+            size="small"
             color="primary"
             variant="flat"
             class="play-button"
@@ -207,20 +207,48 @@ export default {
 
     function toggleFavorite() {
       isFavorite.value = !isFavorite.value
+
+      const favorites = JSON.parse(localStorage.getItem('empty-tv-favorites') || '[]')
+      const itemWithType = { ...props.item, media_type: props.mediaType }
+
+      if (isFavorite.value) {
+        favorites.push(itemWithType)
+      } else {
+        const index = favorites.findIndex(fav => fav.id === props.item.id && fav.media_type === props.mediaType)
+        if (index > -1) {
+          favorites.splice(index, 1)
+        }
+      }
+
+      localStorage.setItem('empty-tv-favorites', JSON.stringify(favorites))
+
       emit('favorite', {
         item: props.item,
         isFavorite: isFavorite.value
       })
-      // TODO: Implement local storage or API call
     }
 
     function toggleWatchlist() {
       isInWatchlist.value = !isInWatchlist.value
+
+      const watchlist = JSON.parse(localStorage.getItem('empty-tv-watchlist') || '[]')
+      const itemWithType = { ...props.item, media_type: props.mediaType }
+
+      if (isInWatchlist.value) {
+        watchlist.push(itemWithType)
+      } else {
+        const index = watchlist.findIndex(item => item.id === props.item.id && item.media_type === props.mediaType)
+        if (index > -1) {
+          watchlist.splice(index, 1)
+        }
+      }
+
+      localStorage.setItem('empty-tv-watchlist', JSON.stringify(watchlist))
+
       emit('watchlist', {
         item: props.item,
         isInWatchlist: isInWatchlist.value
       })
-      // TODO: Implement local storage or API call
     }
 
     function formatRating(rating) {
@@ -243,13 +271,13 @@ export default {
     }
 
     function checkFavoriteStatus() {
-      // TODO: Check if item is in favorites from storage
-      isFavorite.value = false
+      const favorites = JSON.parse(localStorage.getItem('empty-tv-favorites') || '[]')
+      isFavorite.value = favorites.some(fav => fav.id === props.item.id && fav.media_type === props.mediaType)
     }
 
     function checkWatchlistStatus() {
-      // TODO: Check if item is in watchlist from storage
-      isInWatchlist.value = false
+      const watchlist = JSON.parse(localStorage.getItem('empty-tv-watchlist') || '[]')
+      isInWatchlist.value = watchlist.some(item => item.id === props.item.id && item.media_type === props.mediaType)
     }
 
     onMounted(() => {
@@ -281,34 +309,43 @@ export default {
 .media-card {
   position: relative;
   height: 100%;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: var(--glass-effect);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-lg);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
   cursor: pointer;
+  box-shadow: var(--shadow-md);
 }
 
 .media-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 212, 170, 0.2);
+  transform: translateY(-12px) scale(1.03);
+  border-color: rgba(102, 126, 234, 0.6);
+  box-shadow: var(--shadow-xl);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .media-card--loading {
   pointer-events: none;
-  opacity: 0.7;
+  opacity: 0.6;
+  animation: pulse 2s infinite;
 }
 
 .media-card__image-container {
   position: relative;
   flex-shrink: 0;
+  height: 280px;
+  overflow: hidden;
 }
 
 .media-card__image {
-  border-radius: 12px 12px 0 0;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+  height: 100%;
+  object-fit: cover;
 }
 
 .media-card__placeholder {
@@ -316,8 +353,9 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(102, 126, 234, 0.15);
+  color: var(--text-muted);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 }
 
 .media-card__overlay {
@@ -326,12 +364,14 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(15, 15, 35, 0.9);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: all var(--transition-normal);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 }
 
 .media-card:hover .media-card__overlay {
@@ -340,79 +380,178 @@ export default {
 
 .play-button {
   font-size: 3rem !important;
-  box-shadow: 0 4px 16px rgba(0, 212, 170, 0.4);
+  width: 80px !important;
+  height: 80px !important;
+  background: var(--primary-color) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  transition: all var(--transition-normal) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.play-button:hover {
+  background: #764ba2 !important;
+  transform: scale(1.15) !important;
+  box-shadow: var(--shadow-xl) !important;
 }
 
 .media-card__rating {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
 }
 
 .rating-chip {
-  backdrop-filter: blur(10px);
-  background: rgba(0, 0, 0, 0.7) !important;
+  background: rgba(15, 15, 35, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  font-weight: 600 !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 .media-card__content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 1.25rem;
+  background: rgba(15, 15, 35, 0.1);
+  min-height: 140px;
 }
 
 .media-card__title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #FFFFFF;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  letter-spacing: -0.01em;
+  min-height: 2.6em;
 }
 
 .media-card__subtitle {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-weight: 500;
 }
 
 .media-card__genres {
-  margin-bottom: 8px;
-  min-height: 24px;
+  margin-bottom: 12px;
+  min-height: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .media-card__overview {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.4;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
   margin-bottom: 0;
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  opacity: 0.9;
 }
 
 .media-card__actions {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 16px;
+  border-top: 1px solid rgba(102, 126, 234, 0.25);
+  padding: 16px 20px;
+  background: rgba(15, 15, 35, 0.4);
+  backdrop-filter: blur(12px);
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .media-card {
+    min-height: 380px;
+  }
+
+  .media-card__image-container {
+    height: 240px;
+  }
+
+  .media-card__content {
+    padding: 1rem;
+    min-height: 120px;
+  }
+
   .media-card__title {
-    font-size: 0.9rem;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    min-height: 2.4em;
+  }
+
+  .media-card__subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+
+  .media-card__overview {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .media-card__actions {
+    padding: 12px 16px;
+  }
+
+  .play-button {
+    font-size: 2.5rem !important;
+    width: 70px !important;
+    height: 70px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .media-card {
+    min-height: 340px;
+  }
+
+  .media-card__image-container {
+    height: 200px;
+  }
+
+  .media-card__content {
+    padding: 0.875rem;
+    min-height: 100px;
+  }
+
+  .media-card__title {
+    font-size: 0.95rem;
     -webkit-line-clamp: 1;
+    min-height: 1.3em;
+  }
+
+  .media-card__subtitle {
+    font-size: 0.8rem;
   }
 
   .media-card__overview {
     -webkit-line-clamp: 2;
+    font-size: 0.75rem;
+  }
+
+  .media-card__actions {
+    padding: 10px 12px;
   }
 
   .play-button {
     font-size: 2rem !important;
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .media-card__rating {
+    top: 8px;
+    right: 8px;
   }
 }
 </style>

@@ -179,6 +179,10 @@ class TMDBService {
     return this.makeRequest(`/tv/${tvId}/external_ids`)
   }
 
+  async getPersonExternalIds(personId) {
+    return this.makeRequest(`/person/${personId}/external_ids`)
+  }
+
   // Get configuration
   async getConfiguration() {
     return this.makeRequest('/configuration')

@@ -5,6 +5,7 @@ import App from './App.vue'
 
 // Vuetify
 import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
@@ -20,7 +21,7 @@ import TVShowsView from './views/TVShowsView.vue'
 import TrendingView from './views/TrendingView.vue'
 import FavoritesView from './views/FavoritesView.vue'
 import WatchlistView from './views/WatchlistView.vue'
-import TestView from './views/TestView.vue'
+import PersonDetailView from './views/PersonDetailView.vue'
 import NotFoundView from './views/NotFoundView.vue'
 
 // Router configuration
@@ -85,10 +86,12 @@ const routes = [
     component: WatchlistView
   },
   {
-    path: '/test',
-    name: 'Test',
-    component: TestView
+    path: '/person/:id',
+    name: 'PersonDetail',
+    component: PersonDetailView,
+    props: true
   },
+
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -125,15 +128,15 @@ const vuetify = createVuetify({
       dark: {
         dark: true,
         colors: {
-          background: '#1A1D29',
-          surface: '#2D1B42',
-          primary: '#00D4AA',
-          secondary: '#6C5CE7',
-          accent: '#FD79A8',
-          error: '#E17055',
-          info: '#74B9FF',
-          success: '#00B894',
-          warning: '#FDCB6E',
+          background: '#0f172a',
+          surface: '#1e293b',
+          primary: '#3b82f6',
+          secondary: '#8b5cf6',
+          accent: '#06b6d4',
+          error: '#ef4444',
+          info: '#06b6d4',
+          success: '#10b981',
+          warning: '#f59e0b',
         }
       }
     }

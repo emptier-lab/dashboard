@@ -20,7 +20,9 @@
           clearable
           @keyup.enter="performSearch"
           @click:clear="clearSearch"
+          @input="onSearchInput"
           class="search-input"
+          autofocus
         />
 
         <div class="search-filters">
@@ -72,10 +74,17 @@
                 :alt="item.name"
                 aspect-ratio="2/3"
                 cover
+                class="person-image"
               >
                 <template #placeholder>
                   <div class="person-placeholder">
                     <v-icon icon="mdi-account" size="48" />
+                  </div>
+                </template>
+                <template #error>
+                  <div class="person-placeholder">
+                    <v-icon icon="mdi-account" size="48" />
+                    <p>No Image</p>
                   </div>
                 </template>
               </v-img>
@@ -83,6 +92,12 @@
               <v-card-text>
                 <h4 class="person-name">{{ item.name }}</h4>
                 <p class="person-known-for">{{ item.known_for_department }}</p>
+                <div v-if="item.known_for && item.known_for.length > 0" class="known-for-works">
+                  <p class="known-for-title">Known for:</p>
+                  <p class="known-for-list">
+                    {{ item.known_for.slice(0, 2).map(work => work.title || work.name).join(', ') }}
+                  </p>
+                </div>
               </v-card-text>
             </v-card>
           </v-col>
@@ -263,11 +278,29 @@ export default {
       router.push(`/person/${personId}`)
     }
 
+    function onSearchInput() {
+      if (searchQuery.value && searchQuery.value.trim().length > 2) {
+        performSearch()
+      } else if (!searchQuery.value.trim()) {
+        clearSearch()
+      }
+    }
+
     function getProfileUrl(path) {
-      return imageService.getProfileUrl(path, 'w185')
+      if (!path) {
+        return 'https://via.placeholder.com/185x278/2a2a2a/ffffff?text=No+Image'
+      }
+      return imageService.getProfileUrl(path, 'w342')
     }
 
     // Watch for search type changes
+    watch(searchType, () => {
+      if (searched.value && searchQuery.value.trim()) {
+        performSearch()
+      }
+    })
+
+    // Watch for immediate search type changes
     watch(searchType, () => {
       if (searched.value && searchQuery.value.trim()) {
         performSearch()
@@ -300,7 +333,8 @@ export default {
       loadMoreResults,
       clearSearch,
       goToPerson,
-      getProfileUrl
+      getProfileUrl,
+      onSearchInput
     }
   }
 }
@@ -308,36 +342,67 @@ export default {
 
 <style scoped>
 .search-view {
-  min-height: 120vh;
-  background: #1A1D29;
-  padding: 80px 0 20px 0;
+  min-height: 100vh;
+  background: var(--background-color);
+  padding: 100px 0 40px 0;
 }
 
 .search-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
 }
 
 .page-title {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #FFFFFF;
-  margin-bottom: 12px;
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
 }
 
 .page-subtitle {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.3rem;
+  color: var(--text-secondary);
   margin-bottom: 0;
+  font-weight: 400;
 }
 
 .search-input-section {
   max-width: 800px;
-  margin: 0 auto 40px auto;
+  margin: 0 auto 60px auto;
 }
 
 .search-input {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.search-input :deep(.v-field) {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.v-field):hover {
+  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.search-input :deep(.v-field--focused) {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.search-input :deep(.v-field__input) {
+  color: var(--text-primary) !important;
+}
+
+.search-input :deep(.v-icon) {
+  color: var(--primary-color) !important;
 }
 
 .search-filters {
@@ -352,13 +417,13 @@ export default {
 .results-title {
   font-size: 1.8rem;
   font-weight: 600;
-  color: #FFFFFF;
-  margin-bottom: 24px;
+  color: var(--accent-color);
+  margin-bottom: 32px;
 }
 
 .results-count {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   font-weight: 400;
 }
 
@@ -376,24 +441,53 @@ export default {
 
 .person-placeholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 200px;
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.person-placeholder p {
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+
+.person-image {
+  border-radius: 8px 8px 0 0;
 }
 
 .person-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .person-known-for {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.known-for-works {
+  margin-top: 8px;
+}
+
+.known-for-title {
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.known-for-list {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
   margin-bottom: 0;
+  line-height: 1.3;
 }
 
 .load-more-section {
@@ -403,13 +497,23 @@ export default {
 
 .no-results {
   text-align: center;
-  padding: 80px 0;
-  color: rgba(255, 255, 255, 0.7);
+  padding: 80px 40px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  margin: 40px 20px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
 .no-results h2 {
   margin: 16px 0 8px 0;
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  font-size: 1.5rem;
 }
 
 .popular-content {
@@ -419,7 +523,7 @@ export default {
 .section-title {
   font-size: 2rem;
   font-weight: 600;
-  color: #00D4AA;
+  color: var(--accent-color);
   margin-bottom: 24px;
   text-align: center;
 }
@@ -430,7 +534,7 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 80px 0;
-  color: white;
+  color: var(--text-primary);
 }
 
 .loading-text {
@@ -440,21 +544,30 @@ export default {
 
 @media (max-width: 960px) {
   .page-title {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
   }
 
   .search-filters {
     overflow-x: auto;
   }
+
+  .no-results {
+    margin: 20px 10px;
+    padding: 40px 20px;
+  }
 }
 
 @media (max-width: 600px) {
   .page-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .results-title {
     font-size: 1.5rem;
+  }
+
+  .no-results h2 {
+    font-size: 1.2rem;
   }
 }
 </style>

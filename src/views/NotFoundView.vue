@@ -53,21 +53,14 @@
 
         <div class="suggestions">
           <h3 class="suggestions-title">Popular Content</h3>
-          <v-row v-if="popularContent.length > 0">
-            <v-col
+          <div v-if="popularContent.length > 0" class="media-grid media-grid--large">
+            <MediaCard
               v-for="item in popularContent"
               :key="item.id"
-              cols="6"
-              sm="4"
-              md="3"
-              lg="2"
-            >
-              <MediaCard
-                :item="item"
-                :media-type="item.media_type || 'movie'"
-              />
-            </v-col>
-          </v-row>
+              :item="item"
+              :media-type="item.media_type || 'movie'"
+            />
+          </div>
 
           <div v-else class="suggestions-loading">
             <v-progress-circular indeterminate color="primary" size="32" />
@@ -132,17 +125,18 @@ export default {
 <style scoped>
 .not-found-view {
   min-height: 100vh;
-  background: #1A1D29;
+  background: var(--background-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 0;
+  padding: 40px 20px;
 }
 
 .not-found-content {
   text-align: center;
   max-width: 1200px;
   width: 100%;
+  margin: 0 auto;
 }
 
 .error-animation {
@@ -152,11 +146,11 @@ export default {
 .error-code {
   font-size: 8rem;
   font-weight: 900;
-  color: #00D4AA;
+  color: var(--primary-color);
   text-shadow:
-    0 0 20px rgba(0, 212, 170, 0.5),
-    0 0 40px rgba(0, 212, 170, 0.3),
-    0 0 60px rgba(0, 212, 170, 0.2);
+    0 0 20px rgba(102, 126, 234, 0.5),
+    0 0 40px rgba(102, 126, 234, 0.3),
+    0 0 60px rgba(102, 126, 234, 0.2);
   margin-bottom: 20px;
   animation: pulse 2s ease-in-out infinite alternate;
 }
@@ -169,7 +163,7 @@ export default {
 .glitch-text {
   font-size: 2rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-primary);
   position: relative;
 }
 
@@ -178,7 +172,7 @@ export default {
 }
 
 .glitch-text:nth-child(2) {
-  color: #FF6B6B;
+  color: var(--error-color);
   position: absolute;
   top: 0;
   left: 0;
@@ -187,7 +181,7 @@ export default {
 }
 
 .glitch-text:nth-child(3) {
-  color: #4ECDC4;
+  color: var(--accent-color);
   position: absolute;
   top: 0;
   left: 0;
@@ -202,13 +196,13 @@ export default {
 .error-title {
   font-size: 2.5rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
 .error-description {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
@@ -225,7 +219,7 @@ export default {
 .suggestions-title {
   font-size: 1.8rem;
   font-weight: 600;
-  color: #00D4AA;
+  color: var(--accent-color);
   margin-bottom: 32px;
 }
 
@@ -234,23 +228,23 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 40px 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
 }
 
 @keyframes pulse {
   0% {
     transform: scale(1);
     text-shadow:
-      0 0 20px rgba(0, 212, 170, 0.5),
-      0 0 40px rgba(0, 212, 170, 0.3),
-      0 0 60px rgba(0, 212, 170, 0.2);
+      0 0 20px rgba(102, 126, 234, 0.5),
+      0 0 40px rgba(102, 126, 234, 0.3),
+      0 0 60px rgba(102, 126, 234, 0.2);
   }
   100% {
     transform: scale(1.05);
     text-shadow:
-      0 0 25px rgba(0, 212, 170, 0.8),
-      0 0 50px rgba(0, 212, 170, 0.5),
-      0 0 75px rgba(0, 212, 170, 0.3);
+      0 0 25px rgba(102, 126, 234, 0.8),
+      0 0 50px rgba(102, 126, 234, 0.5),
+      0 0 75px rgba(102, 126, 234, 0.3);
   }
 }
 
@@ -267,6 +261,10 @@ export default {
 }
 
 @media (max-width: 960px) {
+  .not-found-view {
+    padding: 20px 15px;
+  }
+
   .error-code {
     font-size: 6rem;
   }
@@ -279,21 +277,36 @@ export default {
     font-size: 2rem;
   }
 
+  .error-description {
+    padding: 0 20px;
+  }
+
   .action-buttons {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 12px;
   }
 
   .action-buttons .v-btn {
     width: 100%;
     max-width: 300px;
+    margin: 0;
   }
 }
 
 @media (max-width: 600px) {
+  .not-found-view {
+    padding: 15px 10px;
+  }
+
+  .not-found-content {
+    padding: 0 10px;
+  }
+
   .error-code {
     font-size: 4rem;
+    margin-bottom: 15px;
   }
 
   .glitch-text {
@@ -302,10 +315,25 @@ export default {
 
   .error-title {
     font-size: 1.5rem;
+    margin-bottom: 12px;
   }
 
   .error-description {
     font-size: 1rem;
+    padding: 0 10px;
+  }
+
+  .error-message {
+    margin-bottom: 30px;
+  }
+
+  .action-buttons {
+    margin-bottom: 40px;
+  }
+
+  .suggestions-title {
+    font-size: 1.5rem;
+    margin-bottom: 24px;
   }
 }
 </style>

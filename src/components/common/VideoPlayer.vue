@@ -119,60 +119,12 @@
         </v-alert>
       </div>
 
-      <div v-if="seasonEpisodeSelector" class="episode-selector">
-        <v-row>
-          <v-col cols="6">
-            <v-select
-              v-model="selectedSeason"
-              :items="seasonOptions"
-              label="Season"
-              variant="outlined"
-              density="compact"
-              @update:model-value="updateEpisodeOptions"
-            />
-          </v-col>
-          <v-col cols="6">
-            <v-select
-              v-model="selectedEpisode"
-              :items="episodeOptions"
-              label="Episode"
-              variant="outlined"
-              density="compact"
-              @update:model-value="loadEpisode"
-            />
-          </v-col>
-        </v-row>
-      </div>
+
+
+
     </div>
 
-    <div v-if="showDownloadOptions" class="download-options">
-      <v-expansion-panels variant="accordion">
-        <v-expansion-panel>
-          <v-expansion-panel-title>
-            <v-icon icon="mdi-download" class="mr-2" />
-            Download Options
-          </v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <p class="download-disclaimer">
-              We don't host any content. These are external sources.
-            </p>
-            <div class="download-links">
-              <v-btn
-                v-for="source in availableSources"
-                :key="source.name"
-                :href="source.url"
-                target="_blank"
-                variant="outlined"
-                size="small"
-                class="download-btn"
-              >
-                {{ source.name }}
-              </v-btn>
-            </div>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </div>
+
   </div>
 </template>
 
@@ -217,10 +169,7 @@ export default {
       type: Boolean,
       default: false
     },
-    showDownloadOptions: {
-      type: Boolean,
-      default: true
-    }
+
   },
   emits: ['player-opened', 'player-closed', 'source-changed', 'episode-changed'],
   setup(props, { emit }) {
@@ -232,6 +181,7 @@ export default {
     const selectedEpisode = ref(props.episode)
     const availableSources = ref([])
     const showSourceInfo = ref(true)
+
 
     const isVidLink = computed(() => {
       return currentSource.value?.name?.toLowerCase().includes('vidlink') || false
@@ -249,26 +199,7 @@ export default {
       return currentSource.value?.url || null
     })
 
-    const seasonEpisodeSelector = computed(() => {
-      return props.mediaType === 'tv' && props.seasons.length > 0
-    })
 
-    const seasonOptions = computed(() => {
-      return props.seasons.map(season => ({
-        title: `Season ${season.season_number}`,
-        value: season.season_number
-      }))
-    })
-
-    const episodeOptions = computed(() => {
-      const currentSeasonData = props.seasons.find(s => s.season_number === selectedSeason.value)
-      if (!currentSeasonData || !currentSeasonData.episodes) return []
-
-      return currentSeasonData.episodes.map(episode => ({
-        title: `Episode ${episode.episode_number}: ${episode.name}`,
-        value: episode.episode_number
-      }))
-    })
 
     function getPlaySubtext() {
       if (props.mediaType === 'tv') {
@@ -344,21 +275,7 @@ export default {
       loadEmbedSources()
     }
 
-    function updateEpisodeOptions() {
-      selectedEpisode.value = 1
-      loadEpisode()
-    }
 
-    function loadEpisode() {
-      if (props.mediaType === 'tv') {
-        loading.value = true
-        loadEmbedSources()
-        emit('episode-changed', {
-          season: selectedSeason.value,
-          episode: selectedEpisode.value
-        })
-      }
-    }
 
     watch(selectedSource, (newIndex) => {
       if (currentSource.value) {
@@ -389,18 +306,13 @@ export default {
       backdropUrl,
       currentSource,
       currentEmbedUrl,
-      seasonEpisodeSelector,
-      seasonOptions,
-      episodeOptions,
       getPlaySubtext,
       getPlayerMeta,
       initializePlayer,
       closePlayer,
       loadEmbedSources,
       handleIframeError,
-      retryLoad,
-      updateEpisodeOptions,
-      loadEpisode
+      retryLoad
     }
   }
 }
@@ -421,10 +333,12 @@ export default {
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .player-placeholder:hover {
-  transform: scale(1.02);
   box-shadow: 0 8px 32px rgba(0, 212, 170, 0.3);
 }
 
@@ -435,16 +349,18 @@ export default {
   width: 100%;
   height: 100%;
   opacity: 0.6;
+  object-fit: cover;
 }
 
 .play-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   text-align: center;
   z-index: 2;
   color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .play-button {
@@ -469,10 +385,15 @@ export default {
 
 .player-container {
   width: 100%;
+  max-width: 100%;
   background: #1A1D29;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.source-btn {
+  font-size: 0.75rem;
+  min-width: 60px;
 }
 
 .player-header {
@@ -480,8 +401,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 60px;
 }
 
 .player-info {
@@ -504,13 +426,11 @@ export default {
 .player-controls {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 16px;
 }
 
-.source-btn {
-  font-size: 0.75rem;
-  min-width: 60px;
-}
+
 
 .close-btn {
   opacity: 0.7;
@@ -530,6 +450,13 @@ export default {
 .video-iframe {
   display: block;
   background: #000;
+}
+.source-info {
+  padding: 12px 20px;
+}
+
+.source-alert {
+  font-size: 0.875rem;
 }
 
 .loading-overlay,
@@ -564,39 +491,11 @@ export default {
   opacity: 0.8;
 }
 
-.source-info {
-  padding: 12px 20px;
-}
 
-.source-alert {
-  font-size: 0.875rem;
-}
 
-.episode-selector {
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
 
-.download-options {
-  margin-top: 16px;
-}
 
-.download-disclaimer {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 16px;
-  font-style: italic;
-}
 
-.download-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.download-btn {
-  font-size: 0.75rem;
-}
 
 @media (max-width: 768px) {
   .player-placeholder {
@@ -604,13 +503,12 @@ export default {
   }
 
   .player-header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+    padding: 12px 16px;
+    min-height: 50px;
   }
 
   .player-controls {
-    justify-content: space-between;
+    justify-content: flex-end;
   }
 
   .iframe-container {
@@ -625,9 +523,8 @@ export default {
     font-size: 1.25rem;
   }
 
-  .source-btn {
-    flex: 1;
-    min-width: auto;
+  .player-info {
+    margin-bottom: 0;
   }
 }
 
@@ -641,11 +538,28 @@ export default {
   }
 
   .player-header {
-    padding: 12px 16px;
+    padding: 10px 12px;
+    min-height: 45px;
   }
 
-  .source-info,
-  .episode-selector {
+  .play-button {
+    font-size: 2.5rem !important;
+  }
+
+  .play-text {
+    font-size: 1.1rem;
+  }
+
+  .play-subtext {
+    font-size: 0.9rem;
+  }
+
+  .source-btn {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .source-info {
     padding: 12px 16px;
   }
 }

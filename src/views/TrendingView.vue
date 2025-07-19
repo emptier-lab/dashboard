@@ -22,22 +22,16 @@
         </v-btn-toggle>
       </div>
 
-      <div v-if="trendingContent.length > 0" class="trending-grid">
-        <v-row>
-          <v-col
+      <div v-if="trendingContent.length > 0" class="trending-section">
+        <div class="media-grid media-grid--large">
+          <MediaCard
             v-for="item in trendingContent"
             :key="item.id"
-            cols="6"
-            sm="4"
-            md="3"
-            lg="2"
-          >
-            <MediaCard
-              :item="item"
-              :media-type="item.media_type"
-            />
-          </v-col>
-        </v-row>
+            :item="item"
+            :media-type="item.media_type"
+            class="trending-card"
+          />
+        </div>
       </div>
 
       <div v-else-if="loading" class="loading-container">
@@ -91,33 +85,65 @@ export default {
 
 <style scoped>
 .trending-view {
-  min-height: 120vh;
-  background: #1A1D29;
-  padding: 80px 0 20px 0;
+  min-height: 100vh;
+  background: var(--background-color);
+  padding: 120px 0 60px 0;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 2px;
 }
 
 .page-title {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #FFFFFF;
-  margin-bottom: 12px;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .page-subtitle {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.375rem;
+  color: var(--text-secondary);
   margin-bottom: 0;
+  font-weight: 500;
 }
 
 .trending-filters {
   display: flex;
   justify-content: center;
-  margin-bottom: 40px;
+  margin-bottom: 3rem;
+}
+
+.trending-section {
+  margin-bottom: 3rem;
+}
+
+.trending-card {
+  transition: all var(--transition-normal);
+}
+
+.trending-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  z-index: 10;
 }
 
 .loading-container {
@@ -127,11 +153,43 @@ export default {
   justify-content: center;
   min-height: 60vh;
   text-align: center;
-  color: white;
+  color: var(--text-primary);
+  padding: 3rem 1rem;
 }
 
 .loading-text {
-  margin-top: 16px;
-  font-size: 1.1rem;
+  margin-top: 1.5rem;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+@media (max-width: 960px) {
+  .trending-view {
+    padding: 100px 0 40px 0;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .trending-filters {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .trending-view {
+    padding: 80px 0 30px 0;
+  }
+
+  .page-title {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 1.125rem;
+  }
 }
 </style>

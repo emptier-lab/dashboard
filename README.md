@@ -1,4 +1,4 @@
-# Empty.tv 🎬
+# empty.tv 🎬
 
 A modern Vue.js movie and TV streaming website with multiple video sources and a sleek design.
 

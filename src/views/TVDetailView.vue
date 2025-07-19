@@ -221,7 +221,7 @@
                     md="3"
                     lg="2"
                   >
-                    <div class="cast-card">
+                    <div class="cast-card" @click="goToPerson(person.id)">
                       <v-img
                         :src="getProfileUrl(person.profile_path)"
                         :alt="person.name"
@@ -254,7 +254,7 @@
                   <MediaCard
                     :item="similarShow"
                     media-type="tv"
-                    @click="goToTVShow(similarShow.id)"
+                    @click="goToTV(similarShow.id)"
                   />
                 </v-col>
               </v-row>
@@ -462,8 +462,12 @@ export default {
       isInWatchlist.value = false
     }
 
-    function goToTVShow(tvId) {
+    function goToTV(tvId) {
       router.push(`/tv/${tvId}`)
+    }
+
+    function goToPerson(personId) {
+      router.push(`/person/${personId}`)
     }
 
     function getPosterUrl(path) {
@@ -538,7 +542,8 @@ export default {
       handleEpisodeChange,
       toggleFavorite,
       toggleWatchlist,
-      goToTVShow,
+      goToTV,
+      goToPerson,
       getPosterUrl,
       getBackdropUrl,
       getProfileUrl,
@@ -664,7 +669,17 @@ export default {
 }
 
 .player-section {
-  padding: 40px 0;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--border-radius-xl);
+  margin: 40px 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.player-section .v-container {
+  max-width: 100%;
+  padding: 0;
 }
 
 .seasons-section,
@@ -787,6 +802,13 @@ export default {
 .cast-card {
   text-align: center;
   margin-bottom: 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.cast-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .cast-image {
