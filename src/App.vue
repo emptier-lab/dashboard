@@ -5,25 +5,18 @@
       <router-view />
     </v-main>
 
-    <!-- AdBlocker Status Component -->
-    <AdBlockerStatus
-      :auto-hide="true"
-      :auto-hide-delay="15000"
-      :show-floating="true"
-    />
+
   </v-app>
 </template>
 
 <script>
 import AppNavigation from '@/components/layout/AppNavigation.vue'
-import AdBlockerStatus from '@/components/common/AdBlockerStatus.vue'
 import { adBlocker } from '@/services/adblocker'
 
 export default {
   name: 'App',
   components: {
-    AppNavigation,
-    AdBlockerStatus
+    AppNavigation
   },
   mounted() {
     // Initialize AdBlocker

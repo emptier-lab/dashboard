@@ -30,7 +30,7 @@ export class AdBlockerService {
   }
 
   async initialize() {
-    console.log("🛡️ Initializing External AdBlocker...");
+    // Initializing External AdBlocker silently
 
     try {
       // Load filter lists from external sources
@@ -43,15 +43,12 @@ export class AdBlockerService {
       this.setupPopupBlocking();
 
       this.isInitialized = true;
-      console.log("✅ External AdBlocker initialized successfully");
+      // External AdBlocker initialized successfully
 
       // Start periodic cleanup
       this.startPeriodicCleanup();
     } catch (error) {
-      console.warn(
-        "⚠️ Failed to load external filters, using fallback:",
-        error,
-      );
+      // Failed to load external filters, using fallback
       this.setupFallbackBlocking();
     }
   }
@@ -69,9 +66,9 @@ export class AdBlockerService {
 
           const text = await response.text();
           this.parseFilterList(text, name);
-          console.log(`📥 Loaded ${name} filter list (${text.length} chars)`);
+          // Loaded filter list silently
         } catch (error) {
-          console.warn(`⚠️ Failed to load ${name} filter list:`, error.message);
+          // Failed to load filter list
           // Use backup/cached filters if available
           this.loadBackupFilters(name);
         }
@@ -157,7 +154,7 @@ export class AdBlockerService {
 
     if (backupFilters[name]) {
       backupFilters[name].forEach((domain) => this.blockedDomains.add(domain));
-      console.log(`📦 Loaded backup filters for ${name}`);
+      // Loaded backup filters
     }
   }
 
@@ -171,7 +168,7 @@ export class AdBlockerService {
 
       if (this.shouldBlockURL(url)) {
         this.stats.blockedRequests++;
-        console.log("🚫 Blocked fetch:", this.getDomainFromURL(url));
+        // Blocked fetch request
         throw new Error("Request blocked by AdBlocker");
       }
 
@@ -186,7 +183,7 @@ export class AdBlockerService {
         window.adBlocker?.shouldBlockURL(url)
       ) {
         window.adBlocker.stats.blockedRequests++;
-        console.log("🚫 Blocked XHR:", window.adBlocker.getDomainFromURL(url));
+        // Blocked XHR request
         return;
       }
       return originalOpen.apply(this, [method, url, ...args]);
@@ -256,10 +253,7 @@ export class AdBlockerService {
           },
           set(value) {
             if (window.adBlocker?.shouldBlockURL(value)) {
-              console.log(
-                `🚫 Blocked ${tagName} src:`,
-                window.adBlocker.getDomainFromURL(value),
-              );
+              // Blocked element src
               window.adBlocker.stats.blockedRequests++;
               return;
             }
@@ -272,10 +266,7 @@ export class AdBlockerService {
         const originalSetAttribute = element.setAttribute;
         element.setAttribute = (name, value) => {
           if (name === "src" && window.adBlocker?.shouldBlockURL(value)) {
-            console.log(
-              `🚫 Blocked ${tagName} setAttribute:`,
-              window.adBlocker.getDomainFromURL(value),
-            );
+            // Blocked element setAttribute
             window.adBlocker.stats.blockedRequests++;
             return;
           }
@@ -482,7 +473,7 @@ export class AdBlockerService {
       const url = args[0];
       if (this.shouldBlockURL(url)) {
         this.stats.blockedAds++;
-        console.log("🚫 Blocked popup:", this.getDomainFromURL(url));
+        // Blocked popup
         return null;
       }
       return originalOpen.apply(window, args);
@@ -504,7 +495,7 @@ export class AdBlockerService {
         if (
           suspiciousKeywords.some((keyword) => lowerMessage.includes(keyword))
         ) {
-          console.log("🚫 Blocked suspicious alert");
+          // Blocked suspicious alert
           return;
         }
       }
@@ -513,7 +504,7 @@ export class AdBlockerService {
   }
 
   setupFallbackBlocking() {
-    console.log("🔄 Setting up fallback ad blocking...");
+    // Setting up fallback ad blocking
 
     // Basic pattern-based blocking
     const patterns = [
@@ -559,12 +550,7 @@ export class AdBlockerService {
       }
     }, 5000);
 
-    // Stats logging every 30 seconds
-    setInterval(() => {
-      if (this.stats.blockedRequests > 0 || this.stats.blockedAds > 0) {
-        console.log("📊 AdBlocker Stats:", this.getStats());
-      }
-    }, 30000);
+    // Stats logging disabled for silent operation
   }
 
   getStats() {
@@ -578,12 +564,12 @@ export class AdBlockerService {
 
   enable() {
     this.isEnabled = true;
-    console.log("✅ External AdBlocker enabled");
+    // External AdBlocker enabled
   }
 
   disable() {
     this.isEnabled = false;
-    console.log("⏸️ External AdBlocker disabled");
+    // External AdBlocker disabled
   }
 
   showStats() {
@@ -593,12 +579,12 @@ export class AdBlockerService {
   }
 
   async updateFilters() {
-    console.log("🔄 Updating external filter lists...");
+    // Updating external filter lists
     this.blockedDomains.clear();
     this.cosmeticFilters.clear();
     await this.loadFilterLists();
     this.applyCosmeticFilters();
-    console.log("✅ Filter lists updated");
+    // Filter lists updated
   }
 }
 

@@ -151,15 +151,9 @@ const vuetify = createVuetify({
 // Create and mount app
 const app = createApp(App).use(router).use(vuetify);
 
-// Initialize AdBlocker before mounting
+// Initialize AdBlocker before mounting (silent mode)
 if (adBlocker) {
-  console.log("🛡️ AdBlocker initialized - protecting against ads and trackers");
-
-  // Show initial stats after a short delay
-  setTimeout(() => {
-    const stats = adBlocker.getStats();
-    console.log("🛡️ AdBlocker Stats:", stats);
-  }, 3000);
+  // AdBlocker running silently in background
 }
 
 app.mount("#app");
