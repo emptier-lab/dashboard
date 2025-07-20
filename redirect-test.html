@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Test - empty.rocks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: white;
+            line-height: 1.6;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #3b82f6;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-item {
+            background: #334155;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3b82f6;
+        }
+        .success {
+            border-left-color: #10b981;
+            background: #064e3b;
+        }
+        .warning {
+            border-left-color: #f59e0b;
+            background: #451a03;
+        }
+        .error {
+            border-left-color: #ef4444;
+            background: #450a0a;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .info {
+            background: #1e40af;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .redirect-count {
+            font-weight: bold;
+            color: #f59e0b;
+        }
+        .current-url {
+            word-break: break-all;
+            background: #334155;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Redirect Loop Test</h1>
+
+        <div class="info">
+            <strong>Purpose:</strong> This page tests if the redirect loop issue has been fixed on empty.rocks
+        </div>
+
+        <div class="test-item" id="urlTest">
+            <h3>Current URL Analysis</h3>
+            <div class="current-url" id="currentUrl"></div>
+            <div id="urlStatus"></div>
+        </div>
+
+        <div class="test-item" id="redirectTest">
+            <h3>Redirect Counter</h3>
+            <p>Page loads: <span class="redirect-count" id="loadCount">1</span></p>
+            <p id="redirectStatus"></p>
+        </div>
+
+        <div class="test-item" id="navigationTest">
+            <h3>Navigation Tests</h3>
+            <button onclick="testNavigation('/')">Test Home</button>
+            <button onclick="testNavigation('/movies')">Test Movies</button>
+            <button onclick="testNavigation('/tv-shows')">Test TV Shows</button>
+            <button onclick="testNavigation('/search')">Test Search</button>
+            <div id="navResults"></div>
+        </div>
+
+        <div class="test-item" id="performanceTest">
+            <h3>Performance Check</h3>
+            <div id="performanceResults"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>Test Results Summary</h3>
+            <div id="testSummary"></div>
+        </div>
+    </div>
+
+    <script>
+        let loadCount = parseInt(localStorage.getItem('loadCount') || '0') + 1;
+        localStorage.setItem('loadCount', loadCount.toString());
+
+        const startTime = performance.now();
+        let redirectCheckInterval;
+        let redirectDetected = false;
+
+        function updateDisplay() {
+            document.getElementById('loadCount').textContent = loadCount;
+            document.getElementById('currentUrl').textContent = window.location.href;
+
+            // URL Analysis
+            const urlStatus = document.getElementById('urlStatus');
+            const hostname = window.location.hostname;
+            const pathname = window.location.pathname;
+
+            if (hostname === 'empty.rocks') {
+                urlStatus.innerHTML = '<span style="color: #10b981;">✓ Correct domain (empty.rocks)</span>';
+            } else {
+                urlStatus.innerHTML = '<span style="color: #f59e0b;">⚠ Not on production domain</span>';
+            }
+
+            // Redirect Detection
+            const redirectStatus = document.getElementById('redirectStatus');
+            if (loadCount > 5) {
+                redirectStatus.innerHTML = '<span style="color: #ef4444;">❌ Possible redirect loop detected!</span>';
+                redirectStatus.parentElement.className = 'test-item error';
+                redirectDetected = true;
+            } else if (loadCount > 2) {
+                redirectStatus.innerHTML = '<span style="color: #f59e0b;">⚠ Multiple page loads detected</span>';
+                redirectStatus.parentElement.className = 'test-item warning';
+            } else {
+                redirectStatus.innerHTML = '<span style="color: #10b981;">✓ Normal page load</span>';
+                redirectStatus.parentElement.className = 'test-item success';
+            }
+        }
+
+        function testNavigation(path) {
+            const resultsDiv = document.getElementById('navResults');
+            resultsDiv.innerHTML += `<p>Testing navigation to: ${path}</p>`;
+
+            try {
+                // Use history API for SPA navigation
+                window.history.pushState({}, '', path);
+                resultsDiv.innerHTML += `<p style="color: #10b981;">✓ Navigation to ${path} successful</p>`;
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: #ef4444;">❌ Navigation to ${path} failed: ${error.message}</p>`;
+            }
+        }
+
+        function checkPerformance() {
+            const endTime = performance.now();
+            const loadTime = endTime - startTime;
+            const performanceDiv = document.getElementById('performanceResults');
+
+            let status = '';
+            if (loadTime < 1000) {
+                status = `<span style="color: #10b981;">✓ Fast load time: ${loadTime.toFixed(2)}ms</span>`;
+            } else if (loadTime < 3000) {
+                status = `<span style="color: #f59e0b;">⚠ Moderate load time: ${loadTime.toFixed(2)}ms</span>`;
+            } else {
+                status = `<span style="color: #ef4444;">❌ Slow load time: ${loadTime.toFixed(2)}ms</span>`;
+            }
+
+            performanceDiv.innerHTML = status;
+        }
+
+        function generateSummary() {
+            const summaryDiv = document.getElementById('testSummary');
+            let issues = [];
+            let successes = [];
+
+            if (redirectDetected) {
+                issues.push('Redirect loop detected');
+            } else {
+                successes.push('No redirect loops');
+            }
+
+            if (window.location.hostname === 'empty.rocks') {
+                successes.push('Correct domain');
+            } else {
+                issues.push('Not on production domain');
+            }
+
+            const loadTime = performance.now() - startTime;
+            if (loadTime < 3000) {
+                successes.push('Good performance');
+            } else {
+                issues.push('Poor performance');
+            }
+
+            let summary = '<h4>Summary:</h4>';
+            if (issues.length === 0) {
+                summary += '<p style="color: #10b981; font-size: 18px;">🎉 All tests passed! Site appears to be working correctly.</p>';
+            } else {
+                summary += '<p style="color: #ef4444;">❌ Issues detected:</p><ul>';
+                issues.forEach(issue => {
+                    summary += `<li style="color: #ef4444;">${issue}</li>`;
+                });
+                summary += '</ul>';
+            }
+
+            if (successes.length > 0) {
+                summary += '<p style="color: #10b981;">✓ Working correctly:</p><ul>';
+                successes.forEach(success => {
+                    summary += `<li style="color: #10b981;">${success}</li>`;
+                });
+                summary += '</ul>';
+            }
+
+            summaryDiv.innerHTML = summary;
+        }
+
+        // Monitor for unexpected redirects
+        function monitorRedirects() {
+            let currentUrl = window.location.href;
+            redirectCheckInterval = setInterval(() => {
+                if (window.location.href !== currentUrl) {
+                    loadCount++;
+                    localStorage.setItem('loadCount', loadCount.toString());
+                    currentUrl = window.location.href;
+                    updateDisplay();
+                }
+            }, 100);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            updateDisplay();
+            checkPerformance();
+            generateSummary();
+            monitorRedirects();
+        });
+
+        // Clear test data
+        function clearTestData() {
+            localStorage.removeItem('loadCount');
+            location.reload();
+        }
+
+        // Add clear button
+        window.addEventListener('load', () => {
+            const container = document.querySelector('.container');
+            const clearBtn = document.createElement('button');
+            clearBtn.textContent = 'Clear Test Data & Reload';
+            clearBtn.onclick = clearTestData;
+            clearBtn.style.marginTop = '20px';
+            clearBtn.style.display = 'block';
+            clearBtn.style.width = '100%';
+            container.appendChild(clearBtn);
+        });
+    </script>
+</body>
+</html>

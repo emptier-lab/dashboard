@@ -165,33 +165,14 @@
       </div>
     </div>
 
-    <!-- Simplified SPA routing script -->
+    <!-- REDIRECT SCRIPTS TEMPORARILY DISABLED TO FIX LOOP -->
     <script>
-      // Simple SPA routing without redirect loops
-      (function (l) {
-        var protocol = l.protocol;
-        var hostname = l.hostname;
-        var path = l.pathname;
-        var search = l.search;
-
-        // Force HTTPS on production domain only if HTTP
-        if (hostname === "empty.rocks" && protocol === "http:") {
-          window.location.replace(
-            "https://" + hostname + path + search + (l.hash || ""),
-          );
-          return;
-        }
-
-        // Handle query parameter routing for SPA
-        if (search && search.startsWith("?/")) {
-          var searchPath = search.slice(2);
-          try {
-            window.history.replaceState(null, null, "/#/" + searchPath);
-          } catch (e) {
-            console.log("History API not available");
-          }
-        }
-      })(window.location);
+      // All redirect logic disabled - debugging redirect loop
+      console.log(
+        "Redirect scripts disabled - current URL:",
+        window.location.href,
+      );
+      console.log("No automatic redirects will occur");
     </script>
 
     <script type="module" src="./src/main.js"></script>

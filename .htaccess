@@ -1,17 +1,17 @@
-# Apache .htaccess configuration for empty.rocks/tv
-# Handles redirects, HTTPS enforcement, and SPA routing
+# Apache .htaccess configuration for empty.rocks
+# ALL REDIRECTS DISABLED - DEBUGGING REDIRECT LOOP
 
 # Enable URL rewriting
 RewriteEngine On
 
-# Force HTTPS on empty.rocks domain
-RewriteCond %{HTTP_HOST} ^(www\.)?empty\.rocks$ [NC]
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# HTTPS redirects temporarily disabled
+# RewriteCond %{HTTP_HOST} ^(www\.)?empty\.rocks$ [NC]
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
-# Handle www to non-www redirect for consistency
-RewriteCond %{HTTP_HOST} ^www\.empty\.rocks$ [NC]
-RewriteRule ^(.*)$ https://empty.rocks/$1 [R=301,L]
+# www redirects temporarily disabled
+# RewriteCond %{HTTP_HOST} ^www\.empty\.rocks$ [NC]
+# RewriteRule ^(.*)$ https://empty.rocks/$1 [R=301,L]
 
 # Vue.js SPA routing - serve index.html for all routes that don't exist
 RewriteCond %{REQUEST_FILENAME} !-f

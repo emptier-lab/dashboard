@@ -1,12 +1,12 @@
 # Netlify _redirects file for empty.rocks
-# Simplified to prevent redirect loops
+# ALL REDIRECTS DISABLED - DEBUGGING REDIRECT LOOP
 
-# Force HTTPS
-http://empty.rocks/* https://empty.rocks/:splat 301!
-http://www.empty.rocks/* https://empty.rocks/:splat 301!
+# HTTPS redirects temporarily disabled
+# http://empty.rocks/* https://empty.rocks/:splat 301!
+# http://www.empty.rocks/* https://empty.rocks/:splat 301!
 
-# Handle www to non-www redirect
-https://www.empty.rocks/* https://empty.rocks/:splat 301!
+# www redirects temporarily disabled
+# https://www.empty.rocks/* https://empty.rocks/:splat 301!
 
 # Vue.js SPA routing - serve index.html for all routes that don't exist
 /* /index.html 200

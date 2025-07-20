@@ -414,18 +414,18 @@ class EnhancedAdBlocker {
       return originalPushState.apply(history, args);
     };
 
-    // Monitor location changes
-    let lastLocation = window.location.href;
-    setInterval(() => {
-      if (window.location.href !== lastLocation) {
-        if (this.shouldBlockURL(window.location.href)) {
-          window.history.back();
-          this.redirectCount++;
-          console.log("🚫 Blocked location change:", window.location.href);
-        }
-        lastLocation = window.location.href;
-      }
-    }, 100);
+    // Location change monitoring disabled to prevent redirect loops
+    // let lastLocation = window.location.href;
+    // setInterval(() => {
+    //   if (window.location.href !== lastLocation) {
+    //     if (this.shouldBlockURL(window.location.href)) {
+    //       window.history.back();
+    //       this.redirectCount++;
+    //       console.log("🚫 Blocked location change:", window.location.href);
+    //     }
+    //     lastLocation = window.location.href;
+    //   }
+    // }, 100);
   }
 
   startContinuousCleanup() {
