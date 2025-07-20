@@ -11,7 +11,6 @@
 
 <script>
 import AppNavigation from '@/components/layout/AppNavigation.vue'
-import { adBlocker } from '@/services/adblocker'
 
 export default {
   name: 'App',
@@ -19,10 +18,7 @@ export default {
     AppNavigation
   },
   mounted() {
-    // Initialize AdBlocker
-    if (adBlocker) {
-      console.log('AdBlocker initialized and active')
-    }
+    console.log('App mounted - AdBlocker disabled to prevent redirect loops')
   }
 }
 </script>

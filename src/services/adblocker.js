@@ -218,7 +218,7 @@ class EnhancedAdBlocker {
     this.startContinuousCleanup();
 
     // Block redirects
-    this.setupRedirectBlocking();
+    // this.setupRedirectBlocking(); // Disabled to prevent redirect loops
 
     console.log(
       "🛡️ Enhanced AdBlocker active - blocking ads, popups, and adult content",
