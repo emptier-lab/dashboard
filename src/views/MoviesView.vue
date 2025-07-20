@@ -222,7 +222,7 @@ export default {
     const currentPage = ref(1)
     const totalPages = ref(0)
     const infiniteScrollEnabled = ref(true)
-    const scrollThreshold = ref(300)
+    const scrollThreshold = ref(800) // Increased threshold to detect scroll earlier
 
     const selectedCategory = ref('popular')
     const selectedGenre = ref(null)
@@ -534,6 +534,7 @@ export default {
     async function loadMoreMovies() {
       if (!hasMoreMovies.value || loadingMore.value) return
 
+      console.log('Loading more movies, page:', currentPage.value + 1)
       loadingMore.value = true
       currentPage.value += 1
 
@@ -691,6 +692,15 @@ export default {
         console.error('Failed to load more movies:', err)
       } finally {
         loadingMore.value = false
+        console.log('Finished loading more movies, now showing:', movies.value.length)
+
+        // Check if we need to load more content if the page isn't filled
+        setTimeout(() => {
+          if (document.documentElement.scrollHeight <= window.innerHeight && hasMoreMovies.value) {
+            console.log('Page not filled, loading additional content')
+            loadMoreMovies()
+          }
+        }, 300)
       }
     }
 
@@ -743,9 +753,11 @@ export default {
       const documentHeight = document.documentElement.scrollHeight
 
       const scrollBottom = scrollTop + windowHeight
-      const threshold = documentHeight - scrollThreshold.value
+      const threshold = documentHeight - (scrollThreshold.value * 2)
 
+      // Check if we're close enough to the bottom to load more
       if (scrollBottom >= threshold) {
+        console.log('Scroll threshold reached, loading more movies')
         loadMoreMovies()
       }
     }
@@ -769,9 +781,19 @@ export default {
       loadNetworks()
       loadMovies()
 
-      if (infiniteScrollEnabled.value) {
-        window.addEventListener('scroll', debouncedHandleScroll)
-      }
+      // Enable infinite scrolling
+      infiniteScrollEnabled.value = true
+
+      // Add scroll event listener with a small delay to ensure initial content is loaded
+      setTimeout(() => {
+        if (infiniteScrollEnabled.value) {
+          console.log('Infinite scroll enabled, adding scroll listener')
+          window.addEventListener('scroll', debouncedHandleScroll)
+
+          // Force a check in case the initial content doesn't fill the page
+          handleScroll()
+        }
+      }, 1000)
     })
 
     onUnmounted(() => {

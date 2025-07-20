@@ -21,7 +21,7 @@ class TMDBService {
   }
 
   // Helper method to make API requests
-  async makeRequest(endpoint, params = {}) {
+  async makeRequest(endpoint, params = {}, retryCount = 0) {
     const url = new URL(`${this.baseURL}${endpoint}`);
     // FORCE USE OF CORRECT API KEY - ac014b130a8e6344c91dff4e68b18d47
     url.searchParams.append("api_key", "ac014b130a8e6344c91dff4e68b18d47");
@@ -45,11 +45,39 @@ class TMDBService {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Check if we should retry rate limited requests
+        if (response.status === 429 && retryCount < 3) {
+          console.warn(`Rate limited, retrying (${retryCount + 1}/3)...`);
+          const retryAfter = response.headers.get("Retry-After") || 2;
+          await new Promise((resolve) =>
+            setTimeout(resolve, retryAfter * 1000),
+          );
+          return this.makeRequest(endpoint, params, retryCount + 1);
+        }
+
+        throw new Error(
+          `TMDB API error: ${response.status} - ${response.statusText}`,
+        );
       }
-      return await response.json();
+
+      const data = await response.json();
+
+      // Log debugging info for pagination
+      if (data.page && data.total_pages) {
+        console.log(
+          `TMDB Pagination: Page ${data.page}/${data.total_pages}, Total results: ${data.total_results}`,
+        );
+      }
+
+      return data;
     } catch (error) {
       console.error("TMDB API Error:", error);
+      // Retry network errors
+      if (error.name === "TypeError" && retryCount < 3) {
+        console.warn(`Network error, retrying (${retryCount + 1}/3)...`);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return this.makeRequest(endpoint, params, retryCount + 1);
+      }
       throw error;
     }
   }
@@ -190,7 +218,11 @@ class TMDBService {
       sort_by: "popularity.desc",
       include_adult: false,
       include_video: false,
+      language: "en-US",
+      region: "US",
+      with_watch_monetization_types: "flatrate|free|ads|rent|buy",
     };
+    console.log("Discover Movies params:", { ...defaultParams, ...params });
     return this.makeRequest("/discover/movie", { ...defaultParams, ...params });
   }
 
@@ -200,18 +232,67 @@ class TMDBService {
       page: 1,
       sort_by: "popularity.desc",
       include_adult: false,
+      language: "en-US",
+      with_watch_monetization_types: "flatrate|free|ads",
+      with_status: 0, // Status to return only shows that are in production (3), planned (2), in production (0) or post production (4)
+      with_type: 0, // Filter TV shows by type, available options: 0 = Documentary, 1 = News, 2 = Miniseries, 3 = Reality, 4 = Scripted, 5 = Talk Show, 6 = Video
     };
+    console.log("Discover TV params:", { ...defaultParams, ...params });
     return this.makeRequest("/discover/tv", { ...defaultParams, ...params });
   }
 
   // Get movies by genre
   async getMoviesByGenre(genreId, page = 1) {
-    return this.discoverMovies({ with_genres: genreId, page });
+    return this.discoverMovies({
+      with_genres: genreId,
+      page,
+      sort_by: "popularity.desc",
+      "vote_count.gte": 50, // Ensure some quality by requiring at least 50 votes
+    });
   }
 
   // Get TV shows by genre
   async getTVByGenre(genreId, page = 1) {
-    return this.discoverTV({ with_genres: genreId, page });
+    return this.discoverTV({
+      with_genres: genreId,
+      page,
+      sort_by: "popularity.desc",
+      "vote_count.gte": 50, // Ensure some quality by requiring at least 50 votes
+    });
+  }
+
+  // Get all pages of results (use carefully - may hit rate limits)
+  async getAllPages(endpoint, params = {}, maxPages = 5) {
+    let allResults = [];
+    let currentPage = 1;
+    let totalPages = 1;
+
+    console.log(`Fetching all pages for ${endpoint} (max: ${maxPages})`);
+
+    do {
+      const response = await this.makeRequest(endpoint, {
+        ...params,
+        page: currentPage,
+      });
+
+      if (response.results && response.results.length > 0) {
+        allResults = [...allResults, ...response.results];
+      }
+
+      totalPages = response.total_pages || 1;
+      console.log(`Fetched page ${currentPage}/${totalPages}`);
+      currentPage++;
+
+      // Add a small delay to avoid rate limiting
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    } while (currentPage <= totalPages && currentPage <= maxPages);
+
+    return {
+      results: allResults,
+      page: 1,
+      total_pages: totalPages,
+      total_results: allResults.length,
+    };
   }
 
   // Get external IDs
