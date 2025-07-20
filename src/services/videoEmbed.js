@@ -197,9 +197,7 @@ export class VideoEmbedService {
       width = "100%",
       height = "500px",
       allowFullscreen = true,
-      sandbox = this.isMobileDevice()
-        ? ""
-        : "allow-scripts allow-same-origin allow-popups allow-forms allow-presentation allow-top-navigation-by-user-activation",
+      sandbox = "",
     } = options;
 
     return `
@@ -210,7 +208,6 @@ export class VideoEmbedService {
         frameborder="0"
         scrolling="no"
         ${allowFullscreen ? "allowfullscreen webkitallowfullscreen mozallowfullscreen" : ""}
-        ${sandbox ? `sandbox="${sandbox}"` : ""}
         allow="autoplay; fullscreen; picture-in-picture"
         referrerpolicy="origin"
         loading="lazy">
@@ -350,15 +347,7 @@ export const embedUtils = {
   },
 
   getSecureIframeAttrs() {
-    const isMobile =
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent,
-      );
-
     return {
-      sandbox: isMobile
-        ? ""
-        : "allow-scripts allow-same-origin allow-popups allow-forms allow-presentation allow-top-navigation-by-user-activation",
       referrerpolicy: "origin",
       loading: "lazy",
       allow: "autoplay; fullscreen; picture-in-picture",
