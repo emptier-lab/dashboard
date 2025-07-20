@@ -1,344 +1,285 @@
-// AdBlocker Service - Comprehensive Ad Blocking for empty.tv
-// Blocks ads, trackers, and unwanted content for better user experience
+// External CDN-Based AdBlocker Service
+// Uses proven filter lists from uBlock Origin, EasyList, and other sources
 
 export class AdBlockerService {
   constructor() {
     this.isEnabled = true;
+    this.isInitialized = false;
+    this.filterLists = new Set();
     this.blockedDomains = new Set();
     this.blockedSelectors = new Set();
-    this.blockedKeywords = new Set();
-    this.observer = null;
+    this.cosmeticFilters = new Set();
     this.stats = {
       blockedAds: 0,
       blockedTrackers: 0,
-      blockedRequests: 0
+      blockedRequests: 0,
+      blockedElements: 0,
     };
 
-    this.initializeBlockLists();
-    this.setupCSS();
-    this.startBlocking();
+    // External filter list URLs
+    this.filterSources = {
+      easylist: "https://easylist.to/easylist/easylist.txt",
+      easyprivacy: "https://easylist.to/easylist/easyprivacy.txt",
+      ublock:
+        "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
+      fanboy: "https://secure.fanboy.co.nz/fanboy-annoyance.txt",
+      mobile: "https://easylist.to/easylist/easylistdutch.txt",
+    };
+
+    this.initialize();
   }
 
-  initializeBlockLists() {
-    // Ad networks and tracking domains
-    const adDomains = [
-      'googleads.g.doubleclick.net',
-      'googlesyndication.com',
-      'google-analytics.com',
-      'googletagmanager.com',
-      'facebook.com/tr',
-      'connect.facebook.net',
-      'amazon-adsystem.com',
-      'adsystem.amazon.com',
-      'pubmatic.com',
-      'rubiconproject.com',
-      'openx.net',
-      'adsrvr.org',
-      'casalemedia.com',
-      'rlcdn.com',
-      'smartadserver.com',
-      'criteo.com',
-      'outbrain.com',
-      'taboola.com',
-      'media.net',
-      'adsnative.com',
-      'adnxs.com',
-      'adsystem.amazon.co.uk',
-      'amazon.co.uk/gp/ads',
-      'ads.yahoo.com',
-      'advertising.com',
-      'adsystem.amazon.de',
-      'amazon.de/gp/ads',
-      'googleadservices.com',
-      'youtube.com/pagead',
-      'youtube.com/ptracking',
-      'twitter.com/i/adsct',
-      'analytics.twitter.com',
-      'linkedin.com/px',
-      'snapchat.com/tr',
-      'tiktok.com/i18n/pixel',
-      'pinterest.com/ct',
-      'reddit.com/api/v1/pixel',
-      'branch.io',
-      'amplitude.com',
-      'mixpanel.com',
-      'hotjar.com',
-      'fullstory.com',
-      'logrocket.com',
-      'sentry.io',
-      'bugsnag.com',
-      'newrelic.com',
-      'datadoghq.com',
-      'segment.com',
-      'segment.io',
-      'chartbeat.com',
-      'quantserve.com',
-      'scorecardresearch.com',
-      'nielsen.com',
-      'comscore.com',
-      'kissmetrics.com',
-      'crazyegg.com',
-      'optimizely.com',
-      'google.com/recaptcha',
-      'recaptcha.net',
-      'hcaptcha.com',
-      'cloudflare.com/ajax/libs',
-      'jsdelivr.net',
-      'unpkg.com',
-      'cdnjs.cloudflare.com'
-    ];
+  async initialize() {
+    console.log("🛡️ Initializing External AdBlocker...");
 
-    // CSS selectors for ad elements
-    const adSelectors = [
-      '[class*="ad-"]',
-      '[class*="ads-"]',
-      '[class*="advertisement"]',
-      '[class*="banner"]',
-      '[class*="popup"]',
-      '[class*="modal"]',
-      '[id*="ad-"]',
-      '[id*="ads-"]',
-      '[id*="advertisement"]',
-      '[id*="banner"]',
-      '[id*="popup"]',
-      '[id*="modal"]',
-      '.ad',
-      '.ads',
-      '.advertisement',
-      '.banner',
-      '.popup',
-      '.modal',
-      '.sponsored',
-      '.promo',
-      '.promotion',
-      '.commercial',
-      '.affiliate',
-      '.advert',
-      '.adspace',
-      '.adslot',
-      '.adblock',
-      '.adsbox',
-      '.adsbanner',
-      '.adsense',
-      '.google-ad',
-      '.facebook-ad',
-      '.twitter-ad',
-      '.youtube-ad',
-      '.instagram-ad',
-      '.linkedin-ad',
-      '.snapchat-ad',
-      '.tiktok-ad',
-      '.pinterest-ad',
-      '.reddit-ad',
-      'iframe[src*="googleads"]',
-      'iframe[src*="googlesyndication"]',
-      'iframe[src*="doubleclick"]',
-      'iframe[src*="amazon-adsystem"]',
-      'iframe[src*="facebook.com/tr"]',
-      'iframe[src*="outbrain"]',
-      'iframe[src*="taboola"]',
-      'iframe[src*="media.net"]',
-      'iframe[src*="criteo"]',
-      'iframe[src*="pubmatic"]',
-      'iframe[src*="rubiconproject"]',
-      'iframe[src*="casalemedia"]',
-      'iframe[src*="smartadserver"]',
-      'script[src*="googleads"]',
-      'script[src*="googlesyndication"]',
-      'script[src*="doubleclick"]',
-      'script[src*="google-analytics"]',
-      'script[src*="googletagmanager"]',
-      'script[src*="facebook.com/tr"]',
-      'script[src*="connect.facebook.net"]',
-      'script[src*="amazon-adsystem"]',
-      'script[src*="outbrain"]',
-      'script[src*="taboola"]',
-      'script[src*="media.net"]',
-      'script[src*="criteo"]',
-      'script[src*="pubmatic"]',
-      'script[src*="rubiconproject"]',
-      'script[src*="casalemedia"]',
-      'script[src*="smartadserver"]',
-      'link[href*="googleads"]',
-      'link[href*="googlesyndication"]',
-      'link[href*="doubleclick"]',
-      'link[href*="google-analytics"]',
-      'link[href*="googletagmanager"]',
-      'img[src*="googleads"]',
-      'img[src*="googlesyndication"]',
-      'img[src*="doubleclick"]',
-      'img[src*="google-analytics"]',
-      'img[src*="facebook.com/tr"]',
-      'img[src*="amazon-adsystem"]'
-    ];
+    try {
+      // Load filter lists from external sources
+      await this.loadFilterLists();
 
-    // Keywords that indicate ads
-    const adKeywords = [
-      'advertisement',
-      'sponsored',
-      'promoted',
-      'affiliate',
-      'banner',
-      'popup',
-      'modal',
-      'overlay',
-      'interstitial',
-      'preroll',
-      'midroll',
-      'postroll',
-      'commercial',
-      'promo',
-      'promotion',
-      'marketing',
-      'campaign',
-      'tracking',
-      'analytics',
-      'pixel',
-      'beacon',
-      'impression',
-      'clickthrough',
-      'monetization',
-      'adsense',
-      'adwords',
-      'facebook-ad',
-      'twitter-ad',
-      'youtube-ad',
-      'instagram-ad',
-      'linkedin-ad',
-      'snapchat-ad',
-      'tiktok-ad',
-      'pinterest-ad',
-      'reddit-ad'
-    ];
+      // Set up blocking mechanisms
+      this.setupNetworkBlocking();
+      this.setupCosmeticBlocking();
+      this.setupDOMBlocking();
+      this.setupPopupBlocking();
 
-    adDomains.forEach(domain => this.blockedDomains.add(domain));
-    adSelectors.forEach(selector => this.blockedSelectors.add(selector));
-    adKeywords.forEach(keyword => this.blockedKeywords.add(keyword));
-  }
+      this.isInitialized = true;
+      console.log("✅ External AdBlocker initialized successfully");
 
-  setupCSS() {
-    const style = document.createElement('style');
-    style.id = 'adblocker-css';
-    style.textContent = `
-      /* AdBlocker CSS - Hide ad elements */
-      ${Array.from(this.blockedSelectors).join(',\n')} {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        position: absolute !important;
-        left: -9999px !important;
-        top: -9999px !important;
-        z-index: -1 !important;
-      }
-
-      /* Hide common ad containers */
-      [class*="ad"]:not([class*="add"]):not([class*="radio"]):not([class*="bad"]):not([class*="head"]):not([class*="read"]):not([class*="thread"]):not([class*="bread"]) {
-        display: none !important;
-      }
-
-      /* Hide tracking pixels */
-      img[width="1"][height="1"],
-      img[style*="width:1px"],
-      img[style*="height:1px"] {
-        display: none !important;
-      }
-
-      /* Hide empty iframes that might be ads */
-      iframe[width="0"],
-      iframe[height="0"],
-      iframe[style*="width:0"],
-      iframe[style*="height:0"] {
-        display: none !important;
-      }
-
-      /* Hide overlay ads */
-      [style*="position:fixed"][style*="z-index"]:not(.video-player):not(.search-results):not(.navigation):not(.header):not(.footer) {
-        display: none !important;
-      }
-
-      /* Specific ad networks */
-      [src*="googleads"],
-      [src*="googlesyndication"],
-      [src*="doubleclick"],
-      [src*="amazon-adsystem"],
-      [src*="facebook.com/tr"],
-      [src*="outbrain"],
-      [src*="taboola"],
-      [src*="media.net"] {
-        display: none !important;
-      }
-    `;
-
-    if (document.head) {
-      document.head.appendChild(style);
-    } else {
-      document.addEventListener('DOMContentLoaded', () => {
-        document.head.appendChild(style);
-      });
+      // Start periodic cleanup
+      this.startPeriodicCleanup();
+    } catch (error) {
+      console.warn(
+        "⚠️ Failed to load external filters, using fallback:",
+        error,
+      );
+      this.setupFallbackBlocking();
     }
   }
 
-  startBlocking() {
-    // Block network requests
-    this.interceptNetworkRequests();
+  async loadFilterLists() {
+    const promises = Object.entries(this.filterSources).map(
+      async ([name, url]) => {
+        try {
+          const response = await fetch(url, {
+            mode: "cors",
+            cache: "force-cache",
+          });
 
-    // Block DOM elements
-    this.startDOMObserver();
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    // Block existing elements
-    this.blockExistingElements();
+          const text = await response.text();
+          this.parseFilterList(text, name);
+          console.log(`📥 Loaded ${name} filter list (${text.length} chars)`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to load ${name} filter list:`, error.message);
+          // Use backup/cached filters if available
+          this.loadBackupFilters(name);
+        }
+      },
+    );
 
-    // Block window popups
-    this.blockPopups();
-
-    // Clean up periodically
-    setInterval(() => this.cleanupAds(), 5000);
+    await Promise.allSettled(promises);
   }
 
-  interceptNetworkRequests() {
+  parseFilterList(text, source) {
+    const lines = text.split("\n");
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      // Skip comments and empty lines
+      if (!trimmed || trimmed.startsWith("!") || trimmed.startsWith("["))
+        continue;
+
+      // Cosmetic filters (CSS selectors)
+      if (trimmed.includes("##") || trimmed.includes("#@#")) {
+        const [domain, selector] = trimmed.split("##");
+        if (selector) {
+          this.cosmeticFilters.add(selector);
+        }
+      }
+      // Element hiding rules
+      else if (trimmed.includes("#?#")) {
+        const [domain, selector] = trimmed.split("#?#");
+        if (selector) {
+          this.cosmeticFilters.add(selector);
+        }
+      }
+      // Network filters
+      else if (trimmed.includes("||") || trimmed.includes("|http")) {
+        const domain = this.extractDomain(trimmed);
+        if (domain) {
+          this.blockedDomains.add(domain);
+        }
+      }
+      // Simple domain blocking
+      else if (trimmed.includes(".") && !trimmed.includes(" ")) {
+        const domain = trimmed.replace(/[\|\^\$\*]/g, "");
+        if (domain.includes(".")) {
+          this.blockedDomains.add(domain);
+        }
+      }
+    }
+  }
+
+  extractDomain(rule) {
+    try {
+      // Remove filter syntax
+      let domain = rule.replace(/^\|\|/, "").replace(/\^.*$/, "");
+      domain = domain.replace(/\$.*$/, "").replace(/\/.*$/, "");
+
+      if (domain.includes(".") && !domain.includes(" ")) {
+        return domain.toLowerCase();
+      }
+    } catch (error) {
+      return null;
+    }
+    return null;
+  }
+
+  loadBackupFilters(name) {
+    // Hardcoded backup filters for essential blocking
+    const backupFilters = {
+      easylist: [
+        "googleads.g.doubleclick.net",
+        "googlesyndication.com",
+        "amazon-adsystem.com",
+        "outbrain.com",
+        "taboola.com",
+      ],
+      easyprivacy: [
+        "google-analytics.com",
+        "googletagmanager.com",
+        "facebook.com/tr",
+        "connect.facebook.net",
+      ],
+    };
+
+    if (backupFilters[name]) {
+      backupFilters[name].forEach((domain) => this.blockedDomains.add(domain));
+      console.log(`📦 Loaded backup filters for ${name}`);
+    }
+  }
+
+  setupNetworkBlocking() {
     // Override fetch
     const originalFetch = window.fetch;
-    window.fetch = (...args) => {
-      const url = args[0];
-      if (typeof url === 'string' && this.shouldBlockURL(url)) {
+    window.fetch = async (resource, options = {}) => {
+      if (!this.isEnabled) return originalFetch(resource, options);
+
+      const url = typeof resource === "string" ? resource : resource.url;
+
+      if (this.shouldBlockURL(url)) {
         this.stats.blockedRequests++;
-        console.log('AdBlocker: Blocked fetch request to', url);
-        return Promise.reject(new Error('Blocked by AdBlocker'));
+        console.log("🚫 Blocked fetch:", this.getDomainFromURL(url));
+        throw new Error("Request blocked by AdBlocker");
       }
-      return originalFetch.apply(window, args);
+
+      return originalFetch(resource, options);
     };
 
     // Override XMLHttpRequest
     const originalOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url, ...args) {
-      if (typeof url === 'string' && window.adBlocker?.shouldBlockURL(url)) {
+    XMLHttpRequest.prototype.open = function (method, url, ...args) {
+      if (
+        window.adBlocker?.isEnabled &&
+        window.adBlocker?.shouldBlockURL(url)
+      ) {
         window.adBlocker.stats.blockedRequests++;
-        console.log('AdBlocker: Blocked XMLHttpRequest to', url);
-        this.abort();
+        console.log("🚫 Blocked XHR:", window.adBlocker.getDomainFromURL(url));
         return;
       }
       return originalOpen.apply(this, [method, url, ...args]);
     };
 
-    // Block script loading
+    // Block script and iframe creation
+    this.interceptElementCreation();
+  }
+
+  shouldBlockURL(url) {
+    if (!url || !this.isEnabled) return false;
+
+    const urlLower = url.toLowerCase();
+    const domain = this.getDomainFromURL(url);
+
+    // Check against blocked domains
+    for (const blockedDomain of this.blockedDomains) {
+      if (urlLower.includes(blockedDomain.toLowerCase())) {
+        return true;
+      }
+    }
+
+    // Check for common ad patterns
+    const adPatterns = [
+      /\/ads?[\/\?]/i,
+      /\/advertisement/i,
+      /\/banner/i,
+      /\/popup/i,
+      /googlesyndication/i,
+      /googleads/i,
+      /doubleclick/i,
+      /amazon-adsystem/i,
+      /facebook\.com\/tr/i,
+      /outbrain/i,
+      /taboola/i,
+      /criteo/i,
+      /pubmatic/i,
+      /rubiconproject/i,
+    ];
+
+    return adPatterns.some((pattern) => pattern.test(url));
+  }
+
+  getDomainFromURL(url) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname;
+    } catch {
+      return "";
+    }
+  }
+
+  interceptElementCreation() {
     const originalCreateElement = document.createElement;
-    document.createElement = function(tagName) {
+    document.createElement = (tagName) => {
       const element = originalCreateElement.call(document, tagName);
 
-      if (tagName.toLowerCase() === 'script' || tagName.toLowerCase() === 'iframe') {
+      if (
+        tagName.toLowerCase() === "script" ||
+        tagName.toLowerCase() === "iframe"
+      ) {
+        // Intercept src attribute setting
+        let srcValue = "";
+        Object.defineProperty(element, "src", {
+          get() {
+            return srcValue;
+          },
+          set(value) {
+            if (window.adBlocker?.shouldBlockURL(value)) {
+              console.log(
+                `🚫 Blocked ${tagName} src:`,
+                window.adBlocker.getDomainFromURL(value),
+              );
+              window.adBlocker.stats.blockedRequests++;
+              return;
+            }
+            srcValue = value;
+            element.setAttribute("src", value);
+          },
+        });
+
+        // Intercept setAttribute for src
         const originalSetAttribute = element.setAttribute;
-        element.setAttribute = function(name, value) {
-          if (name === 'src' && window.adBlocker?.shouldBlockURL(value)) {
+        element.setAttribute = (name, value) => {
+          if (name === "src" && window.adBlocker?.shouldBlockURL(value)) {
+            console.log(
+              `🚫 Blocked ${tagName} setAttribute:`,
+              window.adBlocker.getDomainFromURL(value),
+            );
             window.adBlocker.stats.blockedRequests++;
-            console.log('AdBlocker: Blocked', tagName, 'loading from', value);
             return;
           }
-          return originalSetAttribute.call(this, name, value);
+          return originalSetAttribute.call(element, name, value);
         };
       }
 
@@ -346,255 +287,326 @@ export class AdBlockerService {
     };
   }
 
-  shouldBlockURL(url) {
-    if (!this.isEnabled || !url) return false;
+  setupCosmeticBlocking() {
+    // Apply CSS hiding for ad elements
+    this.applyCosmeticFilters();
 
-    const urlString = url.toString().toLowerCase();
+    // Set up mutation observer for dynamic content
+    const observer = new MutationObserver((mutations) => {
+      let shouldReapply = false;
 
-    // Check blocked domains
-    for (const domain of this.blockedDomains) {
-      if (urlString.includes(domain.toLowerCase())) {
-        return true;
-      }
-    }
-
-    // Check blocked keywords
-    for (const keyword of this.blockedKeywords) {
-      if (urlString.includes(keyword)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  startDOMObserver() {
-    if (this.observer) return;
-
-    this.observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            this.checkAndBlockElement(node);
-            // Check child elements
-            if (node.querySelectorAll) {
-              node.querySelectorAll('*').forEach(child => {
-                this.checkAndBlockElement(child);
-              });
-            }
-          }
-        });
+        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+          shouldReapply = true;
+        }
       });
+
+      if (shouldReapply) {
+        clearTimeout(this.cosmeticTimeout);
+        this.cosmeticTimeout = setTimeout(() => {
+          this.applyCosmeticFilters();
+          this.blockAggresiveElements();
+        }, 100);
+      }
     });
 
     if (document.body) {
-      this.observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+      observer.observe(document.body, { childList: true, subtree: true });
     } else {
-      document.addEventListener('DOMContentLoaded', () => {
-        this.observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
+      document.addEventListener("DOMContentLoaded", () => {
+        observer.observe(document.body, { childList: true, subtree: true });
       });
     }
   }
 
-  blockExistingElements() {
-    if (!document.body) {
-      document.addEventListener('DOMContentLoaded', () => this.blockExistingElements());
-      return;
-    }
+  applyCosmeticFilters() {
+    if (!this.isEnabled) return;
 
-    // Block by selectors
-    this.blockedSelectors.forEach(selector => {
+    // Combine external filters with aggressive selectors
+    const allSelectors = [
+      ...Array.from(this.cosmeticFilters),
+      // Aggressive built-in selectors
+      '[class*="ad-"]:not([class*="add"]):not([class*="read"]):not([class*="head"])',
+      '[class*="ads-"]',
+      '[class*="advertisement"]',
+      '[id*="ad-"]:not([id*="add"]):not([id*="read"]):not([id*="head"])',
+      '[id*="ads-"]',
+      '[id*="advertisement"]',
+      ".sponsored:not(.video-player)",
+      ".promoted:not(.video-player)",
+      ".banner:not(.page-banner):not(.hero-banner)",
+      ".popup:not(.tooltip)",
+      ".modal:not(.video-modal):not(.search-modal)",
+      'iframe[src*="googleads"]',
+      'iframe[src*="googlesyndication"]',
+      'iframe[src*="doubleclick"]',
+      'iframe[src*="outbrain"]',
+      'iframe[src*="taboola"]',
+      'script[src*="googleads"]',
+      'script[src*="googlesyndication"]',
+      'script[src*="google-analytics"]',
+      'img[src*="google-analytics"]',
+      'img[width="1"][height="1"]',
+    ];
+
+    // Create comprehensive CSS
+    const css = allSelectors
+      .map(
+        (selector) =>
+          `${selector} { display: none !important; visibility: hidden !important; opacity: 0 !important; }`,
+      )
+      .join("\n");
+
+    this.injectCSS(css);
+  }
+
+  injectCSS(css) {
+    const existingStyle = document.getElementById("external-adblocker-css");
+    if (existingStyle) {
+      existingStyle.textContent = css;
+    } else {
+      const style = document.createElement("style");
+      style.id = "external-adblocker-css";
+      style.textContent = css;
+      (document.head || document.documentElement).appendChild(style);
+    }
+  }
+
+  setupDOMBlocking() {
+    // Block elements that match patterns
+    const blockElement = (element) => {
+      if (!element || element.hasAttribute("data-adblocker-hidden")) return;
+
+      element.style.display = "none !important";
+      element.style.visibility = "hidden !important";
+      element.style.opacity = "0 !important";
+      element.setAttribute("data-adblocker-hidden", "true");
+      this.stats.blockedElements++;
+    };
+
+    const checkElement = (element) => {
+      if (!element || !element.tagName) return;
+
+      const className = element.className || "";
+      const id = element.id || "";
+      const src = element.src || "";
+      const text = (className + " " + id + " " + src).toLowerCase();
+
+      // Check for ad-related keywords
+      const adKeywords = [
+        "advertisement",
+        "sponsored",
+        "promoted",
+        "banner",
+        "popup",
+        "modal",
+        "overlay",
+        "interstitial",
+        "commercial",
+        "affiliate",
+      ];
+
+      if (adKeywords.some((keyword) => text.includes(keyword))) {
+        blockElement(element);
+        return;
+      }
+
+      // Check for tracking pixels
+      if (element.tagName.toLowerCase() === "img") {
+        const width = element.getAttribute("width");
+        const height = element.getAttribute("height");
+        if (
+          (width === "1" && height === "1") ||
+          src.includes("pixel") ||
+          src.includes("tracking")
+        ) {
+          blockElement(element);
+          return;
+        }
+      }
+
+      // Block suspicious iframes and scripts
+      if (
+        (element.tagName.toLowerCase() === "iframe" ||
+          element.tagName.toLowerCase() === "script") &&
+        src
+      ) {
+        if (this.shouldBlockURL(src)) {
+          blockElement(element);
+          return;
+        }
+      }
+    };
+
+    // Check existing elements
+    const checkExistingElements = () => {
+      document.querySelectorAll("*").forEach(checkElement);
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", checkExistingElements);
+    } else {
+      checkExistingElements();
+    }
+  }
+
+  blockAggresiveElements() {
+    // Additional aggressive blocking for stubborn ads
+    const aggressiveSelectors = [
+      '[style*="position: fixed"][style*="z-index"]:not(.video-player):not(.adblocker-status)',
+      '[style*="position:fixed"][style*="z-index"]:not(.video-player):not(.adblocker-status)',
+      'div[class*="ad"]:not([class*="add"]):not([class*="read"])',
+      'div[id*="ad"]:not([id*="add"]):not([id*="read"])',
+    ];
+
+    aggressiveSelectors.forEach((selector) => {
       try {
         const elements = document.querySelectorAll(selector);
-        elements.forEach(element => this.blockElement(element));
+        elements.forEach((element) => {
+          if (!element.hasAttribute("data-adblocker-hidden")) {
+            element.style.display = "none !important";
+            element.setAttribute("data-adblocker-hidden", "true");
+            this.stats.blockedElements++;
+          }
+        });
       } catch (e) {
         // Invalid selector, skip
       }
     });
-
-    // Block by content
-    document.querySelectorAll('*').forEach(element => {
-      this.checkAndBlockElement(element);
-    });
   }
 
-  checkAndBlockElement(element) {
-    if (!element || !element.tagName) return;
-
-    const tagName = element.tagName.toLowerCase();
-    const className = element.className || '';
-    const id = element.id || '';
-    const src = element.src || '';
-    const href = element.href || '';
-    const textContent = element.textContent || '';
-
-    // Check for ad-related attributes
-    const attributes = [className, id, src, href, textContent].join(' ').toLowerCase();
-
-    // Check blocked keywords
-    for (const keyword of this.blockedKeywords) {
-      if (attributes.includes(keyword)) {
-        this.blockElement(element);
-        return;
-      }
-    }
-
-    // Check blocked URLs
-    if (src && this.shouldBlockURL(src)) {
-      this.blockElement(element);
-      return;
-    }
-
-    if (href && this.shouldBlockURL(href)) {
-      this.blockElement(element);
-      return;
-    }
-
-    // Block suspicious iframes
-    if (tagName === 'iframe') {
-      const iframeSrc = src.toLowerCase();
-      if (iframeSrc.includes('ad') || iframeSrc.includes('banner') || iframeSrc.includes('popup')) {
-        this.blockElement(element);
-        return;
-      }
-    }
-
-    // Block tracking pixels
-    if (tagName === 'img') {
-      const width = element.getAttribute('width');
-      const height = element.getAttribute('height');
-      if ((width === '1' && height === '1') || src.includes('pixel') || src.includes('tracking')) {
-        this.blockElement(element);
-        return;
-      }
-    }
-  }
-
-  blockElement(element) {
-    if (!element || element.hasAttribute('data-adblocked')) return;
-
-    element.setAttribute('data-adblocked', 'true');
-    element.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
-    element.remove();
-
-    this.stats.blockedAds++;
-    console.log('AdBlocker: Blocked element', element);
-  }
-
-  blockPopups() {
-    // Override window.open
+  setupPopupBlocking() {
+    // Block window.open popups
     const originalOpen = window.open;
     window.open = (...args) => {
       const url = args[0];
-      if (url && this.shouldBlockURL(url)) {
+      if (this.shouldBlockURL(url)) {
         this.stats.blockedAds++;
-        console.log('AdBlocker: Blocked popup to', url);
+        console.log("🚫 Blocked popup:", this.getDomainFromURL(url));
         return null;
       }
       return originalOpen.apply(window, args);
     };
 
-    // Block alert, confirm, prompt if they're ad-related
+    // Block suspicious alerts
     const originalAlert = window.alert;
     window.alert = (message) => {
-      if (message && typeof message === 'string') {
+      if (typeof message === "string") {
         const lowerMessage = message.toLowerCase();
-        for (const keyword of this.blockedKeywords) {
-          if (lowerMessage.includes(keyword)) {
-            console.log('AdBlocker: Blocked alert with ad content');
-            return;
-          }
+        const suspiciousKeywords = [
+          "advertisement",
+          "sponsored",
+          "click here",
+          "win now",
+          "congratulations",
+        ];
+
+        if (
+          suspiciousKeywords.some((keyword) => lowerMessage.includes(keyword))
+        ) {
+          console.log("🚫 Blocked suspicious alert");
+          return;
         }
       }
       return originalAlert.call(window, message);
     };
   }
 
-  cleanupAds() {
-    // Remove any new ad elements that might have appeared
-    this.blockExistingElements();
+  setupFallbackBlocking() {
+    console.log("🔄 Setting up fallback ad blocking...");
 
-    // Clean up tracking scripts
-    document.querySelectorAll('script').forEach(script => {
-      const src = script.src || '';
-      if (this.shouldBlockURL(src)) {
-        script.remove();
-        this.stats.blockedRequests++;
-      }
-    });
+    // Basic pattern-based blocking
+    const patterns = [
+      /googleads|googlesyndication|doubleclick/i,
+      /amazon-adsystem|adsystem\.amazon/i,
+      /facebook\.com\/tr|connect\.facebook\.net/i,
+      /outbrain|taboola|criteo|pubmatic/i,
+      /google-analytics|googletagmanager/i,
+    ];
 
-    // Clean up tracking iframes
-    document.querySelectorAll('iframe').forEach(iframe => {
-      const src = iframe.src || '';
-      if (this.shouldBlockURL(src)) {
-        iframe.remove();
+    const shouldBlock = (url) => patterns.some((pattern) => pattern.test(url));
+
+    // Simple fetch override
+    const originalFetch = window.fetch;
+    window.fetch = async (resource, options = {}) => {
+      const url = typeof resource === "string" ? resource : resource.url;
+      if (shouldBlock(url)) {
         this.stats.blockedRequests++;
+        throw new Error("Blocked by fallback AdBlocker");
       }
-    });
+      return originalFetch(resource, options);
+    };
+
+    // Basic CSS injection
+    const css = `
+      [class*="ad-"]:not([class*="add"]):not([class*="read"]),
+      [class*="ads-"], .advertisement, .sponsored, .promoted,
+      iframe[src*="googleads"], iframe[src*="doubleclick"],
+      script[src*="googleads"], script[src*="google-analytics"] {
+        display: none !important;
+      }
+    `;
+    this.injectCSS(css);
+
+    this.isInitialized = true;
+  }
+
+  startPeriodicCleanup() {
+    // Periodic cleanup every 5 seconds
+    setInterval(() => {
+      if (this.isEnabled) {
+        this.blockAggresiveElements();
+      }
+    }, 5000);
+
+    // Stats logging every 30 seconds
+    setInterval(() => {
+      if (this.stats.blockedRequests > 0 || this.stats.blockedAds > 0) {
+        console.log("📊 AdBlocker Stats:", this.getStats());
+      }
+    }, 30000);
   }
 
   getStats() {
-    return { ...this.stats };
+    return {
+      ...this.stats,
+      isEnabled: this.isEnabled,
+      isInitialized: this.isInitialized,
+      filterCount: this.blockedDomains.size + this.cosmeticFilters.size,
+    };
   }
 
   enable() {
     this.isEnabled = true;
-    this.startBlocking();
-    console.log('AdBlocker: Enabled');
+    console.log("✅ External AdBlocker enabled");
   }
 
   disable() {
     this.isEnabled = false;
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-    }
-    console.log('AdBlocker: Disabled');
-  }
-
-  addBlockedDomain(domain) {
-    this.blockedDomains.add(domain);
-  }
-
-  removeBlockedDomain(domain) {
-    this.blockedDomains.delete(domain);
-  }
-
-  addBlockedSelector(selector) {
-    this.blockedSelectors.add(selector);
-    this.updateCSS();
-  }
-
-  removeBlockedSelector(selector) {
-    this.blockedSelectors.delete(selector);
-    this.updateCSS();
-  }
-
-  updateCSS() {
-    const existingStyle = document.getElementById('adblocker-css');
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-    this.setupCSS();
+    console.log("⏸️ External AdBlocker disabled");
   }
 
   showStats() {
-    console.log('AdBlocker Stats:', this.getStats());
-    return this.getStats();
+    const stats = this.getStats();
+    console.log("📊 Detailed AdBlocker Statistics:", stats);
+    return stats;
+  }
+
+  async updateFilters() {
+    console.log("🔄 Updating external filter lists...");
+    this.blockedDomains.clear();
+    this.cosmeticFilters.clear();
+    await this.loadFilterLists();
+    this.applyCosmeticFilters();
+    console.log("✅ Filter lists updated");
   }
 }
 
-// Initialize global adblocker
+// Create and export global instance
 export const adBlocker = new AdBlockerService();
 
-// Make it available globally
-if (typeof window !== 'undefined') {
+// Make available globally for debugging
+if (typeof window !== "undefined") {
   window.adBlocker = adBlocker;
 }
 
