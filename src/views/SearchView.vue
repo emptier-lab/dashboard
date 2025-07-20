@@ -54,7 +54,8 @@
             cols="6"
             sm="4"
             md="3"
-            lg="2"
+            lg="3"
+            xl="2"
           >
             <MediaCard
               v-if="item.media_type !== 'person'"
@@ -134,7 +135,8 @@
             cols="6"
             sm="4"
             md="3"
-            lg="2"
+            lg="3"
+            xl="2"
           >
             <MediaCard
               :item="item"
@@ -414,6 +416,15 @@ export default {
   margin-bottom: 40px;
 }
 
+.search-results .v-col {
+  padding: 8px !important;
+}
+
+.search-results .media-card {
+  min-width: 200px;
+  height: 100%;
+}
+
 .results-title {
   font-size: 1.8rem;
   font-weight: 600;
@@ -433,6 +444,8 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   transition: transform 0.3s ease;
+  min-width: 200px;
+  height: 100%;
 }
 
 .person-card:hover {
@@ -518,6 +531,15 @@ export default {
 
 .popular-content {
   margin-top: 40px;
+}
+
+.popular-content .v-col {
+  padding: 8px !important;
+}
+
+.popular-content .media-card {
+  min-width: 200px;
+  height: 100%;
 }
 
 .section-title {
