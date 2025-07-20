@@ -3,63 +3,8 @@ import { createVuetify } from "vuetify";
 import { createRouter, createWebHistory } from "vue-router";
 import App from "./App.vue";
 
-// Initialize AdBlocker immediately
-import { adBlocker } from "./services/adblocker";
-
-// Inject aggressive anti-ad CSS immediately
-const antiAdCSS = `
-/* Aggressive Ad Blocking CSS */
-.ad, .ads, .advertisement, .sponsored, .promotion, .banner,
-[id*="ad"]:not([id*="add"]):not([id*="head"]):not([id*="read"]),
-[class*="ad"]:not([class*="add"]):not([class*="head"]):not([class*="read"]),
-[id*="ads"], [class*="ads"], [id*="banner"], [class*="banner"],
-[id*="popup"], [class*="popup"], [id*="modal"]:not(.video-modal),
-.video-ads, .player-ads, .preroll, .midroll, .postroll,
-.vast-ad, .vpaid-ad, .ima-ad, .jwplayer-ad, .videojs-ad,
-.overlay-ad, .modal-ad, .popup-ad, .floating-ad, .sticky-ad,
-.fixed-ad, .absolute-ad, .interstitial, .adsbygoogle,
-ins.adsbygoogle, [data-ad-client], [data-ad-slot],
-.amazon-ad, .facebook-ad, .google-ad, .outbrain, .taboola,
-iframe[src*="googleads"], iframe[src*="googlesyndication"],
-iframe[src*="doubleclick"], iframe[src*="outbrain"],
-iframe[src*="taboola"], iframe[src*="porn"], iframe[src*="xxx"],
-iframe[src*="adult"], iframe[src*="sex"], iframe[src*="casino"],
-script[src*="googleads"], script[src*="googlesyndication"],
-script[src*="google-analytics"], img[src*="google-analytics"],
-img[width="1"][height="1"], [href*="porn"], [href*="xxx"],
-[href*="adult"], [href*="sex"], [href*="dating"],
-[href*="casino"], [href*="poker"], [href*="bet"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  position: absolute !important;
-  left: -9999px !important;
-  pointer-events: none !important;
-}
-
-/* Block suspicious popups and overlays */
-div[style*="position: fixed"][style*="z-index"]:not(.video-player):not(.app-container) {
-  display: none !important;
-}
-
-/* Hide tracking pixels */
-img[width="1"], img[height="1"], img[style*="width: 1px"], img[style*="height: 1px"] {
-  display: none !important;
-}
-
-/* Block social media tracking */
-.fb-like, .twitter-follow, .social-share:not(.main-share) {
-  display: none !important;
-}
-`;
-
-// Inject CSS immediately
-const style = document.createElement("style");
-style.type = "text/css";
-style.innerHTML = antiAdCSS;
-document.head.appendChild(style);
+// Import safe ad blocking CSS
+import "./styles/adblocker.css";
 
 // Vuetify
 import "vuetify/styles";
@@ -204,9 +149,12 @@ const vuetify = createVuetify({
 // Create and mount app
 const app = createApp(App).use(router).use(vuetify);
 
-// Initialize AdBlocker before mounting (silent mode)
-if (adBlocker) {
-  // AdBlocker running silently in background
-}
-
 app.mount("#app");
+
+// Initialize AdBlocker after mounting to prevent interference
+setTimeout(() => {
+  import("./services/adblocker").then(({ adBlocker }) => {
+    // AdBlocker initialized after app mount
+    console.log("🛡️ AdBlocker loaded");
+  });
+}, 1000);

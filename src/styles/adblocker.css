@@ -1,0 +1,95 @@
+/* Basic Ad Blocking CSS - Safe for App Functionality */
+
+/* Generic ad containers */
+.ad:not(.add):not(.read):not(.head),
+.ads,
+.advertisement,
+.sponsored:not(.video-content),
+.promotion:not(.video-content),
+.banner:not(.hero-banner):not(.page-banner),
+[data-ad-client],
+[data-ad-slot],
+.adsbygoogle,
+ins.adsbygoogle {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Video player ads */
+.video-ads,
+.player-ads,
+.preroll,
+.midroll,
+.postroll,
+.vast-ad,
+.vpaid-ad,
+.ima-ad,
+.jwplayer-ad,
+.videojs-ad {
+  display: none !important;
+}
+
+/* Popup and overlay ads */
+.popup-ad,
+.modal-ad:not(.video-modal):not(.search-modal),
+.overlay-ad,
+.floating-ad,
+.sticky-ad:not(.navbar),
+.interstitial {
+  display: none !important;
+}
+
+/* Adult content ads */
+[href*="porn"],
+[href*="xxx"],
+[href*="adult"],
+[href*="sex"],
+[href*="dating"]:not(.movie-rating),
+[href*="casino"],
+[href*="poker"],
+[href*="bet"]:not(.beta) {
+  display: none !important;
+}
+
+/* Tracking pixels */
+img[width="1"][height="1"],
+img[style*="width: 1px"],
+img[style*="height: 1px"] {
+  display: none !important;
+}
+
+/* Common ad network iframes */
+iframe[src*="googleads"],
+iframe[src*="googlesyndication"],
+iframe[src*="doubleclick"],
+iframe[src*="outbrain"],
+iframe[src*="taboola"],
+iframe[src*="popads"],
+iframe[src*="exoclick"] {
+  display: none !important;
+}
+
+/* Social media tracking (but preserve main share buttons) */
+.fb-like:not(.main-share),
+.twitter-follow:not(.main-share),
+.social-plugin:not(.main-share) {
+  display: none !important;
+}
+
+/* Suspicious fixed position elements (be careful not to block app UI) */
+div[style*="position: fixed"][style*="z-index: 999"]:not(.video-player):not(.app-header):not(.app-sidebar) {
+  display: none !important;
+}
+
+/* Hide elements with ad-related IDs (but preserve app functionality) */
+[id*="google_ads"],
+[id*="adsense"],
+[id*="doubleclick"],
+[id*="outbrain"],
+[id*="taboola"],
+[class*="google-ad"],
+[class*="outbrain"],
+[class*="taboola"] {
+  display: none !important;
+}

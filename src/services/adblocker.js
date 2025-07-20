@@ -191,6 +191,17 @@ class EnhancedAdBlocker {
 
     console.log("🛡️ Enhanced AdBlocker initializing...");
 
+    // Wait for DOM to be ready before aggressive blocking
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        this.setupBlocking();
+      });
+    } else {
+      this.setupBlocking();
+    }
+  }
+
+  setupBlocking() {
     // Block network requests
     this.setupNetworkBlocking();
 
@@ -203,7 +214,7 @@ class EnhancedAdBlocker {
     // Setup iframe protection
     this.setupIframeProtection();
 
-    // Continuous cleanup
+    // Continuous cleanup (less aggressive)
     this.startContinuousCleanup();
 
     // Block redirects
@@ -215,42 +226,34 @@ class EnhancedAdBlocker {
   }
 
   setupNetworkBlocking() {
-    // Override fetch to block requests
+    // Override fetch to block requests (but allow essential app requests)
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       const url = args[0];
-      if (typeof url === "string" && this.shouldBlockURL(url)) {
+      if (
+        typeof url === "string" &&
+        this.shouldBlockURL(url) &&
+        !this.isEssentialURL(url)
+      ) {
         this.blockedCount++;
         console.log("🚫 Blocked request:", url);
-        throw new Error("Blocked by AdBlocker");
+        return Promise.reject(new Error("Blocked by AdBlocker"));
       }
       return originalFetch.apply(this, args);
     };
 
-    // Override XMLHttpRequest
+    // Override XMLHttpRequest (but allow essential requests)
     const originalXHROpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url, ...args) {
-      if (this.adBlocker?.shouldBlockURL(url)) {
-        this.adBlocker.blockedCount++;
+      if (
+        window.adBlocker?.shouldBlockURL(url) &&
+        !window.adBlocker?.isEssentialURL(url)
+      ) {
+        window.adBlocker.blockedCount++;
         console.log("🚫 Blocked XHR:", url);
-        throw new Error("Blocked by AdBlocker");
+        return;
       }
       return originalXHROpen.call(this, method, url, ...args);
-    };
-
-    // Block script loading
-    const originalAppendChild = Node.prototype.appendChild;
-    Node.prototype.appendChild = function (child) {
-      if (
-        child.tagName === "SCRIPT" &&
-        child.src &&
-        this.adBlocker?.shouldBlockURL(child.src)
-      ) {
-        this.adBlocker.blockedCount++;
-        console.log("🚫 Blocked script:", child.src);
-        return child;
-      }
-      return originalAppendChild.call(this, child);
     };
   }
 
@@ -434,30 +437,35 @@ class EnhancedAdBlocker {
   }
 
   startContinuousCleanup() {
-    // Aggressive cleanup every 2 seconds
-    setInterval(() => {
-      if (!this.enabled) return;
+    // Less aggressive cleanup every 5 seconds (after initial load)
+    setTimeout(() => {
+      setInterval(() => {
+        if (!this.enabled) return;
 
-      // Remove ad elements
-      this.adSelectors.forEach((selector) => {
-        try {
-          document.querySelectorAll(selector).forEach((el) => {
-            el.remove();
-            this.blockedCount++;
-          });
-        } catch (e) {
-          // Ignore errors
+        // Remove ad elements (but be more careful)
+        this.adSelectors.forEach((selector) => {
+          try {
+            document.querySelectorAll(selector).forEach((el) => {
+              // Don't remove if it's part of the main app
+              if (!el.closest("#app") || el.closest(".video-player")) {
+                el.remove();
+                this.blockedCount++;
+              }
+            });
+          } catch (e) {
+            // Ignore errors
+          }
+        });
+
+        // Close any popups that might have slipped through
+        if (window.name && window.name.includes("popup")) {
+          window.close();
         }
-      });
 
-      // Close any popups that might have slipped through
-      if (window.name && window.name.includes("popup")) {
-        window.close();
-      }
-
-      // Block suspicious globals
-      this.blockSuspiciousGlobals();
-    }, 2000);
+        // Block suspicious globals
+        this.blockSuspiciousGlobals();
+      }, 5000);
+    }, 3000); // Wait 3 seconds after page load
   }
 
   blockSuspiciousGlobals() {
@@ -496,6 +504,11 @@ class EnhancedAdBlocker {
 
     const urlLower = url.toLowerCase();
 
+    // Don't block essential app URLs
+    if (this.isEssentialURL(url)) {
+      return false;
+    }
+
     // Check domain blacklist
     for (const domain of this.adDomains) {
       if (urlLower.includes(domain)) {
@@ -505,6 +518,49 @@ class EnhancedAdBlocker {
 
     // Check pattern blacklist
     for (const pattern of this.adPatterns) {
+      if (pattern.test(url)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  isEssentialURL(url) {
+    if (!url) return false;
+
+    const urlLower = url.toLowerCase();
+
+    // Allow essential app domains and APIs
+    const essentialDomains = [
+      "api.themoviedb.org",
+      "image.tmdb.org",
+      "fonts.googleapis.com",
+      "fonts.gstatic.com",
+      "emptier-lab.github.io",
+      "empty.rocks",
+      "localhost",
+      "127.0.0.1",
+    ];
+
+    // Allow essential file types
+    const essentialPatterns = [
+      /\.(js|css|woff|woff2|ttf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/i,
+      /\/assets\//i,
+      /\/dist\//i,
+      /vite\.svg/i,
+      /main\.js/i,
+      /index\./i,
+    ];
+
+    // Check if URL is essential
+    for (const domain of essentialDomains) {
+      if (urlLower.includes(domain)) {
+        return true;
+      }
+    }
+
+    for (const pattern of essentialPatterns) {
       if (pattern.test(url)) {
         return true;
       }
