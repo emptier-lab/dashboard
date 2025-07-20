@@ -26,6 +26,10 @@ class TMDBService {
       }
     });
 
+    // Debug: Log the exact URL being called
+    console.log("TMDB API Request URL:", url.toString());
+    console.log("API Key in URL:", this.apiKey);
+
     try {
       const response = await fetch(url);
       if (!response.ok) {
