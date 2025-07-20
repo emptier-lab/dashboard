@@ -104,8 +104,8 @@
           </v-col>
         </v-row>
 
-        <!-- Load More Button -->
-        <div v-if="hasMoreResults" class="load-more-section">
+        <!-- Load More Button (fallback) -->
+        <div v-if="hasMoreResults && !infiniteScrollEnabled" class="load-more-section">
           <v-btn
             @click="loadMoreResults"
             :loading="loadingMore"
@@ -115,6 +115,18 @@
           >
             Load More Results
           </v-btn>
+        </div>
+
+        <!-- Infinite scroll loading indicator -->
+        <div v-if="loadingMore && infiniteScrollEnabled" class="infinite-loading">
+          <v-progress-circular indeterminate color="primary" size="48" />
+          <p class="loading-text">Loading more results...</p>
+        </div>
+
+        <!-- End of results indicator -->
+        <div v-if="!hasMoreResults && searchResults.length > 0" class="end-of-results">
+          <v-icon icon="mdi-check-circle" color="success" size="32" />
+          <p>You've reached the end of the results</p>
         </div>
       </div>
 
@@ -156,7 +168,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MediaCard from '@/components/common/MediaCard.vue'
 import { tmdbService, imageService } from '@/services/tmdb'
@@ -181,6 +193,8 @@ export default {
     const currentPage = ref(1)
     const totalPages = ref(0)
     const totalResults = ref(0)
+    const infiniteScrollEnabled = ref(true)
+    const scrollThreshold = ref(800)
 
     const hasMoreResults = computed(() => {
       return currentPage.value < totalPages.value
@@ -232,6 +246,7 @@ export default {
     async function loadMoreResults() {
       if (!hasMoreResults.value || loadingMore.value) return
 
+      console.log('Loading more search results, page:', currentPage.value + 1)
       loadingMore.value = true
       currentPage.value += 1
 
@@ -256,8 +271,48 @@ export default {
         console.error('Failed to load more results:', error)
       } finally {
         loadingMore.value = false
+        console.log('Finished loading more search results, now showing:', searchResults.value.length)
+
+        // Check if we need to load more content if the page isn't filled
+        setTimeout(() => {
+          if (document.documentElement.scrollHeight <= window.innerHeight && hasMoreResults.value) {
+            console.log('Page not filled, loading additional search results')
+            loadMoreResults()
+          }
+        }, 300)
       }
     }
+
+    function handleScroll() {
+      if (!infiniteScrollEnabled.value || loadingMore.value || !hasMoreResults.value || !searched.value) return
+
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+
+      const scrollBottom = scrollTop + windowHeight
+      const threshold = documentHeight - (scrollThreshold.value * 2)
+
+      // Check if we're close enough to the bottom to load more
+      if (scrollBottom >= threshold) {
+        console.log('Scroll threshold reached, loading more search results')
+        loadMoreResults()
+      }
+    }
+
+    function debounce(func, wait) {
+      let timeout
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout)
+          func(...args)
+        }
+        clearTimeout(timeout)
+        timeout = setTimeout(later, wait)
+      }
+    }
+
+    const debouncedHandleScroll = debounce(handleScroll, 100)
 
     function clearSearch() {
       searchQuery.value = ''
@@ -318,6 +373,28 @@ export default {
       } else {
         loadPopularContent()
       }
+
+      // Enable infinite scrolling
+      infiniteScrollEnabled.value = true
+
+      // Add scroll event listener with a small delay to ensure initial content is loaded
+      setTimeout(() => {
+        if (infiniteScrollEnabled.value) {
+          console.log('Search infinite scroll enabled, adding scroll listener')
+          window.addEventListener('scroll', debouncedHandleScroll)
+
+          // Force a check in case the initial content doesn't fill the page
+          if (searched.value) {
+            handleScroll()
+          }
+        }
+      }, 1000)
+    })
+
+    onUnmounted(() => {
+      if (infiniteScrollEnabled.value) {
+        window.removeEventListener('scroll', debouncedHandleScroll)
+      }
     })
 
     return {
@@ -331,6 +408,7 @@ export default {
       lastSearchQuery,
       totalResults,
       hasMoreResults,
+      infiniteScrollEnabled,
       performSearch,
       loadMoreResults,
       clearSearch,
@@ -562,6 +640,39 @@ export default {
 .loading-text {
   margin-top: 16px;
   font-size: 1.1rem;
+}
+
+.infinite-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  margin-top: 2rem;
+}
+
+.infinite-loading .loading-text {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.end-of-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.end-of-results p {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 @media (max-width: 960px) {
