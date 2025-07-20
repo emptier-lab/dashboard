@@ -4,15 +4,20 @@
     <meta charset="utf-8" />
     <title>empty.tv - Redirecting...</title>
     <script>
-      // Simplified redirect for SPA on GitHub Pages with /tv/ subdirectory
+      // Improved redirect for SPA on GitHub Pages with /tv/ subdirectory
       var l = window.location;
-      var segments = l.pathname.split("/").filter(function (segment) {
+      var path = l.pathname;
+      var segments = path.split("/").filter(function (segment) {
         return segment !== "";
       });
 
       // Handle specific redirects
-      if (segments.length > 0 && segments[0] === "empty.tv") {
-        // Redirect /empty.tv to /tv/
+      if (
+        path === "/empty.tv" ||
+        path === "/empty.tv/" ||
+        (segments.length > 0 && segments[0] === "empty.tv")
+      ) {
+        // Redirect /empty.tv, /empty.tv/, or /empty.tv/* to /tv/
         window.location.replace(l.protocol + "//" + l.hostname + "/tv/");
       } else if (segments.length > 0 && segments[0] === "tv") {
         if (segments.length > 1) {
