@@ -198,13 +198,8 @@
           }
         }
 
-        // Skip redirect if already in /tv/ path to prevent infinite loops
-        if (path.startsWith("/tv/")) {
-          return;
-        }
-
-        // Handle /tv redirect (root domain access)
-        if (path === "/tv" || path === "/tv/") {
+        // Skip redirect if already at root path to prevent infinite loops
+        if (path === "/" || path === "") {
           return;
         }
 
@@ -213,30 +208,30 @@
           // Handle /empty.tv/tv/ nested path - extract any sub-path
           if (path.indexOf("/empty.tv/tv/") !== -1) {
             var cleanPath = path.replace("/empty.tv/tv/", "/");
-            if (cleanPath === "/") cleanPath = "";
-            safeRedirect("/tv/" + cleanPath + search + hash);
+            safeRedirect("/" + cleanPath + search + hash);
             return;
           }
 
           // Handle /empty.tv/ base path
           if (path === "/empty.tv" || path === "/empty.tv/") {
-            safeRedirect("/tv/" + search + hash);
+            safeRedirect("/" + search + hash);
             return;
           }
 
           // Handle other /empty.tv/* paths
           var newPath = path.replace(/^\/empty\.tv/, "");
           if (newPath === "" || newPath === "/") {
-            safeRedirect("/tv/" + search + hash);
+            safeRedirect("/" + search + hash);
           } else {
-            safeRedirect("/tv" + newPath + search + hash);
+            safeRedirect(newPath + search + hash);
           }
           return;
         }
 
-        // Handle root domain redirect to /tv/
-        if (path === "/" || path === "") {
-          safeRedirect("/tv/" + search + hash);
+        // Handle /tv/ redirect to root
+        if (path.startsWith("/tv/")) {
+          var cleanPath = path.replace("/tv/", "/");
+          safeRedirect("/" + cleanPath + search + hash);
           return;
         }
 
@@ -244,10 +239,10 @@
         if (l.search && l.search.startsWith("?/")) {
           var searchPath = l.search.slice(2);
           try {
-            window.history.replaceState(null, null, "/tv/#/" + searchPath);
+            window.history.replaceState(null, null, "/#/" + searchPath);
           } catch (e) {
             // Fallback if history API fails
-            safeRedirect("/tv/#/" + searchPath);
+            safeRedirect("/#/" + searchPath);
           }
         }
       })(window.location);

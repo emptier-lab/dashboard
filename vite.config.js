@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from "node:url";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/tv/",
+  base: "/",
   plugins: [
     vue(),
     vuetify({
