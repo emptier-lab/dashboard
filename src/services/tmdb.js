@@ -3,13 +3,16 @@
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
-const TMDB_API_KEY = "ac014b130a8e6344c91dff4e68b18d4";
+// API key - hardcoded to avoid any environment variable issues
+const API_KEY = "ac014b130a8e6344c91dff4e68b18d4";
 
 class TMDBService {
   constructor() {
     this.baseURL = TMDB_BASE_URL;
     this.imageBaseURL = TMDB_IMAGE_BASE_URL;
-    this.apiKey = TMDB_API_KEY;
+    this.apiKey = API_KEY;
+    // Debug: Log API key to console to verify it's correct
+    console.log("TMDB API Key being used:", this.apiKey);
   }
 
   // Helper method to make API requests
