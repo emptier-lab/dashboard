@@ -151,11 +151,25 @@
 
     <!-- GitHub Pages SPA routing script -->
     <script>
-      // Simplified SPA routing for GitHub Pages with /tv/ subdirectory
+      // Aggressive redirect for empty.tv paths
       (function (l) {
+        var path = l.pathname;
+
+        // Check if this is an empty.tv redirect request
+        if (
+          path.indexOf("empty.tv") !== -1 ||
+          path === "/empty.tv" ||
+          path === "/empty.tv/"
+        ) {
+          console.log("Main index.html redirecting empty.tv to /tv/");
+          window.location.replace("/tv/");
+          return;
+        }
+
+        // Original SPA routing
         if (l.search && l.search.startsWith("?/")) {
-          var path = l.search.slice(2);
-          window.history.replaceState(null, null, "/tv/#/" + path);
+          var searchPath = l.search.slice(2);
+          window.history.replaceState(null, null, "/tv/#/" + searchPath);
         }
       })(window.location);
     </script>

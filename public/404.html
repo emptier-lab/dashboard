@@ -4,34 +4,53 @@
     <meta charset="utf-8" />
     <title>empty.tv - Redirecting...</title>
     <script>
-      // Improved redirect for SPA on GitHub Pages with /tv/ subdirectory
+      // Aggressive redirect for empty.tv paths
       var l = window.location;
       var path = l.pathname;
+
+      // Debug info
+      console.log("404 Redirect Debug:", {
+        pathname: path,
+        hostname: l.hostname,
+        href: l.href,
+      });
+
       var segments = path.split("/").filter(function (segment) {
         return segment !== "";
       });
 
-      // Handle specific redirects
+      // AGGRESSIVE REDIRECT FOR EMPTY.TV
       if (
+        path.indexOf("empty.tv") !== -1 ||
         path === "/empty.tv" ||
         path === "/empty.tv/" ||
         (segments.length > 0 && segments[0] === "empty.tv")
       ) {
-        // Redirect /empty.tv, /empty.tv/, or /empty.tv/* to /tv/
-        window.location.replace(l.protocol + "//" + l.hostname + "/tv/");
+        console.log("Redirecting empty.tv to /tv/");
+        // Multiple redirect methods to ensure it works
+        try {
+          window.location.replace("/tv/");
+        } catch (e) {
+          window.location.href = "/tv/";
+        }
+        // Fallback with full URL
+        setTimeout(function () {
+          window.location.href = "https://empty.rocks/tv/";
+        }, 100);
+        return;
       } else if (segments.length > 0 && segments[0] === "tv") {
         if (segments.length > 1) {
           var newPath = "/" + segments.slice(1).join("/");
-          window.location.replace(
-            l.protocol + "//" + l.hostname + "/tv/#" + newPath,
-          );
+          window.location.href = "/tv/#" + newPath;
+          return;
         } else {
           // Just redirect to the tv app
-          window.location.replace(l.protocol + "//" + l.hostname + "/tv/");
+          window.location.href = "/tv/";
+          return;
         }
       } else {
         // Redirect to main dashboard (will be created later)
-        window.location.replace(l.protocol + "//" + l.hostname + "/");
+        window.location.href = "/";
       }
     </script>
     <style>
