@@ -37,16 +37,69 @@ jobs:
           mkdir -p deploy/tv
           cp -r dist/* deploy/tv/
 
-          # Create root index.html redirect
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=/tv/"><script>window.location.replace("/tv/");</script></head><body>Redirecting to <a href="/tv/">empty.tv</a>...</body></html>' > deploy/index.html
+          # Copy configuration files
+          cp .htaccess deploy/ 2>/dev/null || true
+          cp _redirects deploy/ 2>/dev/null || true
+          cp vercel.json deploy/ 2>/dev/null || true
+
+          # Create root index.html redirect with HTTPS support
+          cat > deploy/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta http-equiv="refresh" content="0; url=/tv/">
+            <script>
+              if (window.location.protocol === 'http:' && window.location.hostname === 'empty.rocks') {
+                window.location.replace('https://empty.rocks/tv/');
+              } else {
+                window.location.replace('/tv/');
+              }
+            </script>
+          </head>
+          <body>Redirecting to <a href="/tv/">empty.tv</a>...</body>
+          </html>
+          EOF
 
           # Create empty.tv redirect directory
           mkdir -p deploy/empty.tv
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=/tv/"><script>window.location.replace("/tv/");</script></head><body>Redirecting to <a href="/tv/">empty.tv</a>...</body></html>' > deploy/empty.tv/index.html
+          cat > deploy/empty.tv/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta http-equiv="refresh" content="0; url=/tv/">
+            <script>
+              if (window.location.protocol === 'http:' && window.location.hostname === 'empty.rocks') {
+                window.location.replace('https://empty.rocks/tv/');
+              } else {
+                window.location.replace('/tv/');
+              }
+            </script>
+          </head>
+          <body>Redirecting to <a href="/tv/">empty.tv</a>...</body>
+          </html>
+          EOF
 
           # Create empty.tv/tv redirect directory
           mkdir -p deploy/empty.tv/tv
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=/tv/"><script>window.location.replace("/tv/");</script></head><body>Redirecting to <a href="/tv/">empty.tv</a>...</body></html>' > deploy/empty.tv/tv/index.html
+          cat > deploy/empty.tv/tv/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta http-equiv="refresh" content="0; url=/tv/">
+            <script>
+              if (window.location.protocol === 'http:' && window.location.hostname === 'empty.rocks') {
+                window.location.replace('https://empty.rocks/tv/');
+              } else {
+                window.location.replace('/tv/');
+              }
+            </script>
+          </head>
+          <body>Redirecting to <a href="/tv/">empty.tv</a>...</body>
+          </html>
+          EOF
+
+          # Copy .htaccess to /tv/ directory for SPA routing
+          cp .htaccess deploy/tv/ 2>/dev/null || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

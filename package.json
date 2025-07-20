@@ -6,13 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:rocks": "vite build --base=/tv/",
-    "build:pages": "vite build --base=/empty.tv/",
-    "build:dashboard": "vite build --base=/dashboard/",
+    "build:rocks": "vite build",
     "preview": "vite preview",
-    "preview:rocks": "vite preview --base=/tv/",
-    "preview:pages": "vite preview --base=/empty.tv/",
-    "preview:dashboard": "vite preview --base=/dashboard/",
+    "preview:rocks": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>empty.rocks Redirect Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #3b82f6;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .test-url {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            color: #06b6d4;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 4px solid #10b981;
+            color: #10b981;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 4px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .info {
+            background: rgba(6, 182, 212, 0.2);
+            border-left: 4px solid #06b6d4;
+            color: #06b6d4;
+        }
+
+        .current-url {
+            background: rgba(139, 92, 246, 0.2);
+            border-left: 4px solid #8b5cf6;
+            color: #8b5cf6;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-pass { background: #10b981; }
+        .status-fail { background: #ef4444; }
+        .status-pending { background: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 empty.rocks Redirect Test Suite</h1>
+
+        <div class="current-url">
+            <strong>Current URL:</strong> <span id="currentUrl"></span><br>
+            <strong>Protocol:</strong> <span id="currentProtocol"></span><br>
+            <strong>Host:</strong> <span id="currentHost"></span><br>
+            <strong>Path:</strong> <span id="currentPath"></span>
+        </div>
+
+        <div class="test-section">
+            <h3></h3>🔒 HTTPS Enforcement Tests</h3>
+            <p>These tests verify that HTTP requests are properly redirected to HTTPS on the production domain.</p>
+
+            <div class="test-url">http://empty.rocks/</div>
+            <button onclick="testRedirect('http://empty.rocks/', 'https://empty.rocks/tv/')">Test Root HTTP → HTTPS/TV</button>
+            <div id="result-http-root" class="result"></div>
+
+            <div class="test-url">http://empty.rocks/tv/</div>
+            <button onclick="testRedirect('http://empty.rocks/tv/', 'https://empty.rocks/tv/')">Test TV HTTP → HTTPS</button>
+            <div id="result-http-tv" class="result"></div>
+
+            <div class="test-url">http://www.empty.rocks/</div>
+            <button onclick="testRedirect('http://www.empty.rocks/', 'https://empty.rocks/tv/')">Test WWW HTTP → HTTPS/TV</button>
+            <div id="result-http-www" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🌐 WWW Redirect Tests</h3>
+            <p>These tests verify that www subdomain is properly redirected to the apex domain.</p>
+
+            <div class="test-url">https://www.empty.rocks/</div>
+            <button onclick="testRedirect('https://www.empty.rocks/', 'https://empty.rocks/tv/')">Test WWW → Apex</button>
+            <div id="result-www-apex" class="result"></div>
+
+            <div class="test-url">https://www.empty.rocks/tv/</div>
+            <button onclick="testRedirect('https://www.empty.rocks/tv/', 'https://empty.rocks/tv/')">Test WWW/TV → Apex/TV</button>
+            <div id="result-www-tv" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📍 Path Redirect Tests</h3>
+            <p>These tests verify that problematic paths are correctly redirected to /tv/.</p>
+
+            <div class="test-url">https://empty.rocks/</div>
+            <button onclick="testRedirect('https://empty.rocks/', 'https://empty.rocks/tv/')">Test Root → /tv/</button>
+            <div id="result-root-tv" class="result"></div>
+
+            <div class="test-url">https://empty.rocks/empty.tv/</div>
+            <button onclick="testRedirect('https://empty.rocks/empty.tv/', 'https://empty.rocks/tv/')">Test /empty.tv/ → /tv/</button>
+            <div id="result-emptytv-tv" class="result"></div>
+
+            <div class="test-url">https://empty.rocks/empty.tv/tv/</div>
+            <button onclick="testRedirect('https://empty.rocks/empty.tv/tv/', 'https://empty.rocks/tv/')">Test /empty.tv/tv/ → /tv/</button>
+            <div id="result-nested-tv" class="result"></div>
+
+            <div class="test-url">https://empty.rocks/empty.tv/movies</div>
+            <button onclick="testRedirect('https://empty.rocks/empty.tv/movies', 'https://empty.rocks/tv/movies')">Test /empty.tv/movies → /tv/movies</button>
+            <div id="result-emptytv-movies" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 SPA Routing Tests</h3>
+            <p>These tests verify that Vue.js SPA routes work correctly under /tv/.</p>
+
+            <div class="test-url">https://empty.rocks/tv/movies</div>
+            <button onclick="testPage('https://empty.rocks/tv/movies')">Test Movies Page</button>
+            <div id="result-spa-movies" class="result"></div>
+
+            <div class="test-url">https://empty.rocks/tv/tv-shows</div>
+            <button onclick="testPage('https://empty.rocks/tv/tv-shows')">Test TV Shows Page</button>
+            <div id="result-spa-tvshows" class="result"></div>
+
+            <div class="test-url">https://empty.rocks/tv/search</div>
+            <button onclick="testPage('https://empty.rocks/tv/search')">Test Search Page</button>
+            <div id="result-spa-search" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ Performance Tests</h3>
+            <p>These tests check loading times and resource availability.</p>
+
+            <button onclick="testPerformance()">Run Performance Test</button>
+            <div id="result-performance" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Diagnostic Information</h3>
+            <button onclick="showDiagnostics()">Show Diagnostics</button>
+            <div id="result-diagnostics" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function updateCurrentUrlInfo() {
+            document.getElementById('currentUrl').textContent = window.location.href;
+            document.getElementById('currentProtocol').textContent = window.location.protocol;
+            document.getElementById('currentHost').textContent = window.location.host;
+            document.getElementById('currentPath').textContent = window.location.pathname;
+        }
+
+        function testRedirect(testUrl, expectedUrl) {
+            const resultId = getResultId(testUrl);
+            const resultEl = document.getElementById(resultId);
+
+            resultEl.innerHTML = '<span class="status-indicator status-pending"></span>Testing redirect...';
+
+            // Create a temporary window to test the redirect
+            const testWindow = window.open(testUrl, '_blank', 'width=100,height=100,left=-1000,top=-1000');
+
+            setTimeout(() => {
+                try {
+                    const finalUrl = testWindow.location.href;
+                    testWindow.close();
+
+                    if (finalUrl === expectedUrl || finalUrl.startsWith(expectedUrl)) {
+                        resultEl.innerHTML = `<span class="status-indicator status-pass"></span>✅ PASS: Redirected to ${finalUrl}`;
+                        resultEl.className = 'result success';
+                    } else {
+                        resultEl.innerHTML = `<span class="status-indicator status-fail"></span>❌ FAIL: Expected ${expectedUrl}, got ${finalUrl}`;
+                        resultEl.className = 'result error';
+                    }
+                } catch (error) {
+                    testWindow.close();
+                    resultEl.innerHTML = `<span class="status-indicator status-fail"></span>❌ ERROR: ${error.message}`;
+                    resultEl.className = 'result error';
+                }
+            }, 3000);
+        }
+
+        function testPage(testUrl) {
+            const resultId = getResultId(testUrl);
+            const resultEl = document.getElementById(resultId);
+
+            resultEl.innerHTML = '<span class="status-indicator status-pending"></span>Testing page load...';
+
+            fetch(testUrl, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        resultEl.innerHTML = `<span class="status-indicator status-pass"></span>✅ PASS: Page loads successfully (${response.status})`;
+                        resultEl.className = 'result success';
+                    } else {
+                        resultEl.innerHTML = `<span class="status-indicator status-fail"></span>❌ FAIL: HTTP ${response.status}`;
+                        resultEl.className = 'result error';
+                    }
+                })
+                .catch(error => {
+                    resultEl.innerHTML = `<span class="status-indicator status-fail"></span>❌ ERROR: ${error.message}`;
+                    resultEl.className = 'result error';
+                });
+        }
+
+        function testPerformance() {
+            const resultEl = document.getElementById('result-performance');
+            resultEl.innerHTML = '<span class="status-indicator status-pending"></span>Running performance tests...';
+
+            const startTime = performance.now();
+
+            Promise.all([
+                fetch('/tv/', { method: 'HEAD' }),
+                fetch('/tv/assets/index.css', { method: 'HEAD' }).catch(() => null),
+                fetch('/tv/assets/index.js', { method: 'HEAD' }).catch(() => null)
+            ]).then(responses => {
+                const endTime = performance.now();
+                const loadTime = Math.round(endTime - startTime);
+
+                const mainPageStatus = responses[0].ok ? '✅' : '❌';
+                const cssStatus = responses[1] && responses[1].ok ? '✅' : '⚠️';
+                const jsStatus = responses[2] && responses[2].ok ? '✅' : '⚠️';
+
+                resultEl.innerHTML = `
+                    <span class="status-indicator status-pass"></span>
+                    Performance Test Results:<br>
+                    • Load Time: ${loadTime}ms<br>
+                    • Main Page: ${mainPageStatus}<br>
+                    • CSS Assets: ${cssStatus}<br>
+                    • JS Assets: ${jsStatus}
+                `;
+                resultEl.className = 'result info';
+            }).catch(error => {
+                resultEl.innerHTML = `<span class="status-indicator status-fail"></span>❌ Performance test failed: ${error.message}`;
+                resultEl.className = 'result error';
+            });
+        }
+
+        function showDiagnostics() {
+            const resultEl = document.getElementById('result-diagnostics');
+
+            const diagnostics = {
+                userAgent: navigator.userAgent,
+                referrer: document.referrer,
+                cookiesEnabled: navigator.cookieEnabled,
+                onlineStatus: navigator.onLine,
+                language: navigator.language,
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                screen: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                localTime: new Date().toISOString()
+            };
+
+            let diagnosticsHtml = '<span class="status-indicator status-pass"></span>System Diagnostics:<br>';
+            for (const [key, value] of Object.entries(diagnostics)) {
+                diagnosticsHtml += `• ${key}: ${value}<br>`;
+            }
+
+            resultEl.innerHTML = diagnosticsHtml;
+            resultEl.className = 'result info';
+        }
+
+        function getResultId(url) {
+            return 'result-' + url.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 20);
+        }
+
+        // Update current URL info on page load
+        updateCurrentUrlInfo();
+
+        // Add a test runner for all tests
+        function runAllTests() {
+            const buttons = document.querySelectorAll('button[onclick^="testRedirect"], button[onclick^="testPage"]');
+            buttons.forEach((button, index) => {
+                setTimeout(() => {
+                    button.click();
+                }, index * 1000);
+            });
+        }
+
+        // Add keyboard shortcut for running all tests
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                runAllTests();
+            }
+        });
+
+        console.log('🔗 empty.rocks Redirect Test Suite loaded');
+        console.log('Press Ctrl+T to run all tests automatically');
+    </script>
+</body>
+</html>

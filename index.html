@@ -151,15 +151,30 @@
 
     <!-- GitHub Pages SPA routing script -->
     <script>
-      // Cross-browser compatible redirect system
+      // Cross-browser compatible redirect system with HTTPS support
       (function (l) {
+        var protocol = l.protocol;
+        var hostname = l.hostname;
         var path = l.pathname;
         var search = l.search;
         var hash = l.hash;
 
+        // Force HTTPS on production domain
+        if (hostname === "empty.rocks" && protocol === "http:") {
+          window.location.replace("https://" + hostname + path + search + hash);
+          return;
+        }
+
         // Multi-method redirect function for cross-browser compatibility
         function safeRedirect(targetUrl) {
           console.log("Main index.html redirecting to:", targetUrl);
+
+          // Ensure HTTPS for production redirects
+          if (hostname === "empty.rocks" && !targetUrl.startsWith("https://")) {
+            if (targetUrl.startsWith("/")) {
+              targetUrl = "https://" + hostname + targetUrl;
+            }
+          }
 
           // Try multiple redirect methods for maximum browser compatibility
           try {
@@ -183,24 +198,45 @@
           }
         }
 
+        // Skip redirect if already in /tv/ path to prevent infinite loops
+        if (path.startsWith("/tv/")) {
+          return;
+        }
+
+        // Handle /tv redirect (root domain access)
+        if (path === "/tv" || path === "/tv/") {
+          return;
+        }
+
         // Handle empty.tv redirect requests
         if (path.indexOf("empty.tv") !== -1) {
-          // Handle /empty.tv/tv/ nested path
+          // Handle /empty.tv/tv/ nested path - extract any sub-path
           if (path.indexOf("/empty.tv/tv/") !== -1) {
             var cleanPath = path.replace("/empty.tv/tv/", "/");
-            safeRedirect("/tv" + cleanPath + search + hash);
+            if (cleanPath === "/") cleanPath = "";
+            safeRedirect("/tv/" + cleanPath + search + hash);
             return;
           }
 
-          // Handle basic /empty.tv paths
+          // Handle /empty.tv/ base path
           if (path === "/empty.tv" || path === "/empty.tv/") {
             safeRedirect("/tv/" + search + hash);
             return;
           }
 
-          // Handle any other empty.tv variations
+          // Handle other /empty.tv/* paths
           var newPath = path.replace(/^\/empty\.tv/, "");
-          safeRedirect("/tv" + newPath + search + hash);
+          if (newPath === "" || newPath === "/") {
+            safeRedirect("/tv/" + search + hash);
+          } else {
+            safeRedirect("/tv" + newPath + search + hash);
+          }
+          return;
+        }
+
+        // Handle root domain redirect to /tv/
+        if (path === "/" || path === "") {
+          safeRedirect("/tv/" + search + hash);
           return;
         }
 

@@ -1,0 +1,24 @@
+# Netlify _redirects file for empty.rocks/tv
+# Handles redirects, HTTPS enforcement, and SPA routing
+
+# Force HTTPS
+http://empty.rocks/* https://empty.rocks/:splat 301!
+http://www.empty.rocks/* https://empty.rocks/:splat 301!
+
+# Handle www to non-www redirect
+https://www.empty.rocks/* https://empty.rocks/:splat 301!
+
+# Redirect root domain to /tv/
+https://empty.rocks/ /tv/ 301!
+/ /tv/ 301!
+
+# Handle empty.tv path redirects - prevent double nesting
+/empty.tv/tv/* /tv/:splat 301!
+/empty.tv/* /tv/:splat 301!
+/empty.tv /tv/ 301!
+
+# Vue.js SPA routing - serve index.html for all /tv/ routes
+/tv/* /tv/index.html 200
+
+# Fallback for any other routes
+/* /tv/ 301!
