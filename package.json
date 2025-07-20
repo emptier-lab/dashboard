@@ -8,9 +8,11 @@
     "build": "vite build",
     "build:rocks": "vite build --base=/tv/",
     "build:pages": "vite build --base=/empty.tv/",
+    "build:dashboard": "vite build --base=/dashboard/",
     "preview": "vite preview",
     "preview:rocks": "vite preview --base=/tv/",
     "preview:pages": "vite preview --base=/empty.tv/",
+    "preview:dashboard": "vite preview --base=/dashboard/",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
@@ -43,10 +45,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/emptier-lab/empty.tv.git"
+    "url": "https://github.com/emptier-lab/dashboard.git"
   },
   "bugs": {
-    "url": "https://github.com/emptier-lab/empty.tv/issues"
+    "url": "https://github.com/emptier-lab/dashboard/issues"
   },
-  "homepage": "https://emptier-lab.github.io/empty.tv"
+  "homepage": "https://emptier-lab.github.io/dashboard"
 }
