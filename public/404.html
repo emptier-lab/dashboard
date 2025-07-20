@@ -10,8 +10,11 @@
         return segment !== "";
       });
 
-      // Handle /tv/ subdirectory routing
-      if (segments.length > 0 && segments[0] === "tv") {
+      // Handle specific redirects
+      if (segments.length > 0 && segments[0] === "empty.tv") {
+        // Redirect /empty.tv to /tv/
+        window.location.replace(l.protocol + "//" + l.hostname + "/tv/");
+      } else if (segments.length > 0 && segments[0] === "tv") {
         if (segments.length > 1) {
           var newPath = "/" + segments.slice(1).join("/");
           window.location.replace(
