@@ -3,22 +3,28 @@
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
-// API key - hardcoded to avoid any environment variable issues
+// FORCE CACHE INVALIDATION - API key must be ac014b130a8e6344c91dff4e68b18d47
 const API_KEY = "ac014b130a8e6344c91dff4e68b18d47";
+const FORCE_API_KEY = "ac014b130a8e6344c91dff4e68b18d47";
 
 class TMDBService {
   constructor() {
     this.baseURL = TMDB_BASE_URL;
     this.imageBaseURL = TMDB_IMAGE_BASE_URL;
-    this.apiKey = API_KEY;
-    // Debug: Log API key to console to verify it's correct
-    console.log("TMDB API Key being used:", this.apiKey);
+    this.apiKey = FORCE_API_KEY; // MUST BE ac014b130a8e6344c91dff4e68b18d47
+    // CRITICAL DEBUG: Log API key to console to verify it's correct
+    console.log("CRITICAL - TMDB API Key being used:", this.apiKey);
+    console.log(
+      "CRITICAL - API Key should end in 47:",
+      this.apiKey.endsWith("47"),
+    );
   }
 
   // Helper method to make API requests
   async makeRequest(endpoint, params = {}) {
     const url = new URL(`${this.baseURL}${endpoint}`);
-    url.searchParams.append("api_key", this.apiKey);
+    // FORCE USE OF CORRECT API KEY - ac014b130a8e6344c91dff4e68b18d47
+    url.searchParams.append("api_key", "ac014b130a8e6344c91dff4e68b18d47");
 
     Object.keys(params).forEach((key) => {
       if (params[key] !== null && params[key] !== undefined) {
@@ -26,9 +32,15 @@ class TMDBService {
       }
     });
 
-    // Debug: Log the exact URL being called
-    console.log("TMDB API Request URL:", url.toString());
-    console.log("API Key in URL:", this.apiKey);
+    // CRITICAL DEBUG: Log the exact URL being called
+    console.log("CRITICAL - TMDB API Request URL:", url.toString());
+    console.log(
+      "CRITICAL - API Key in URL should be ac014b130a8e6344c91dff4e68b18d47",
+    );
+    console.log(
+      "CRITICAL - URL contains correct key:",
+      url.toString().includes("ac014b130a8e6344c91dff4e68b18d47"),
+    );
 
     try {
       const response = await fetch(url);
