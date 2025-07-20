@@ -156,8 +156,8 @@
           />
         </div>
 
-        <!-- Load More Button -->
-        <div v-if="hasMoreMovies" class="load-more-section">
+        <!-- Load More Button for fallback -->
+        <div v-if="hasMoreMovies && !infiniteScrollEnabled" class="load-more-section">
           <v-btn
             @click="loadMoreMovies"
             :loading="loadingMore"
@@ -168,6 +168,18 @@
             <v-icon icon="mdi-reload" class="mr-2" />
             Load More Movies
           </v-btn>
+        </div>
+
+        <!-- Infinite scroll loading indicator -->
+        <div v-if="loadingMore && infiniteScrollEnabled" class="infinite-loading">
+          <v-progress-circular indeterminate color="primary" size="48" />
+          <p class="loading-text">Loading more movies...</p>
+        </div>
+
+        <!-- End of results indicator -->
+        <div v-if="!hasMoreMovies && movies.length > 0" class="end-of-results">
+          <v-icon icon="mdi-check-circle" color="success" size="32" />
+          <p>You've reached the end of the results</p>
         </div>
       </div>
 
@@ -192,7 +204,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import MediaCard from '@/components/common/MediaCard.vue'
 import { tmdbService } from '@/services/tmdb'
 
@@ -209,6 +221,8 @@ export default {
     const error = ref(null)
     const currentPage = ref(1)
     const totalPages = ref(0)
+    const infiniteScrollEnabled = ref(true)
+    const scrollThreshold = ref(300)
 
     const selectedCategory = ref('popular')
     const selectedGenre = ref(null)
@@ -721,10 +735,49 @@ export default {
       console.log('Networks loaded')
     }
 
+    function handleScroll() {
+      if (!infiniteScrollEnabled.value || loadingMore.value || !hasMoreMovies.value) return
+
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+
+      const scrollBottom = scrollTop + windowHeight
+      const threshold = documentHeight - scrollThreshold.value
+
+      if (scrollBottom >= threshold) {
+        loadMoreMovies()
+      }
+    }
+
+    function debounce(func, wait) {
+      let timeout
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout)
+          func(...args)
+        }
+        clearTimeout(timeout)
+        timeout = setTimeout(later, wait)
+      }
+    }
+
+    const debouncedHandleScroll = debounce(handleScroll, 100)
+
     onMounted(() => {
       loadGenres()
       loadNetworks()
       loadMovies()
+
+      if (infiniteScrollEnabled.value) {
+        window.addEventListener('scroll', debouncedHandleScroll)
+      }
+    })
+
+    onUnmounted(() => {
+      if (infiniteScrollEnabled.value) {
+        window.removeEventListener('scroll', debouncedHandleScroll)
+      }
     })
 
     return {
@@ -748,6 +801,7 @@ export default {
       themeTypes,
       keywordOptions,
       hasMoreMovies,
+      infiniteScrollEnabled,
       loadMovies,
       loadMoreMovies,
       toggleKeyword
@@ -970,6 +1024,39 @@ export default {
   justify-content: center;
   margin-top: 3rem;
   padding: 2rem 0;
+}
+
+.infinite-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  margin-top: 2rem;
+}
+
+.infinite-loading .loading-text {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.end-of-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.end-of-results p {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .loading-container,
