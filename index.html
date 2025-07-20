@@ -214,8 +214,21 @@
           }
         }
 
-        // Skip redirect if already at root path to prevent infinite loops
-        if (path === "/" || path === "") {
+        // Skip redirect if already at root path or valid Vue routes
+        if (
+          path === "/" ||
+          path === "" ||
+          path === "/movies" ||
+          path === "/tv-shows" ||
+          path === "/search" ||
+          path === "/trending" ||
+          path === "/favorites" ||
+          path === "/watchlist" ||
+          path.startsWith("/movie/") ||
+          path.startsWith("/tv/") ||
+          path.startsWith("/watch/") ||
+          path.startsWith("/person/")
+        ) {
           return;
         }
 
@@ -241,13 +254,6 @@
           } else {
             safeRedirect(newPath + search + hash);
           }
-          return;
-        }
-
-        // Handle /tv/ redirect to root
-        if (path.startsWith("/tv/")) {
-          var cleanPath = path.replace("/tv/", "/");
-          safeRedirect("/" + cleanPath + search + hash);
           return;
         }
 
