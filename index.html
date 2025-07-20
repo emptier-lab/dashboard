@@ -151,25 +151,68 @@
 
     <!-- GitHub Pages SPA routing script -->
     <script>
-      // Aggressive redirect for empty.tv paths
+      // Cross-browser compatible redirect system
       (function (l) {
         var path = l.pathname;
+        var search = l.search;
+        var hash = l.hash;
 
-        // Check if this is an empty.tv redirect request
-        if (
-          path.indexOf("empty.tv") !== -1 ||
-          path === "/empty.tv" ||
-          path === "/empty.tv/"
-        ) {
-          console.log("Main index.html redirecting empty.tv to /tv/");
-          window.location.replace("/tv/");
+        // Multi-method redirect function for cross-browser compatibility
+        function safeRedirect(targetUrl) {
+          console.log("Main index.html redirecting to:", targetUrl);
+
+          // Try multiple redirect methods for maximum browser compatibility
+          try {
+            // Method 1: location.replace (doesn't create history entry)
+            window.location.replace(targetUrl);
+          } catch (e1) {
+            try {
+              // Method 2: location.href
+              window.location.href = targetUrl;
+            } catch (e2) {
+              try {
+                // Method 3: location.assign
+                window.location.assign(targetUrl);
+              } catch (e3) {
+                // Method 4: Direct assignment with timeout
+                setTimeout(function () {
+                  window.location = targetUrl;
+                }, 10);
+              }
+            }
+          }
+        }
+
+        // Handle empty.tv redirect requests
+        if (path.indexOf("empty.tv") !== -1) {
+          // Handle /empty.tv/tv/ nested path
+          if (path.indexOf("/empty.tv/tv/") !== -1) {
+            var cleanPath = path.replace("/empty.tv/tv/", "/");
+            safeRedirect("/tv" + cleanPath + search + hash);
+            return;
+          }
+
+          // Handle basic /empty.tv paths
+          if (path === "/empty.tv" || path === "/empty.tv/") {
+            safeRedirect("/tv/" + search + hash);
+            return;
+          }
+
+          // Handle any other empty.tv variations
+          var newPath = path.replace(/^\/empty\.tv/, "");
+          safeRedirect("/tv" + newPath + search + hash);
           return;
         }
 
-        // Original SPA routing
+        // Original SPA routing for query parameters
         if (l.search && l.search.startsWith("?/")) {
           var searchPath = l.search.slice(2);
-          window.history.replaceState(null, null, "/tv/#/" + searchPath);
+          try {
+            window.history.replaceState(null, null, "/tv/#/" + searchPath);
+          } catch (e) {
+            // Fallback if history API fails
+            safeRedirect("/tv/#/" + searchPath);
+          }
         }
       })(window.location);
     </script>

@@ -2,56 +2,101 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0; url=/tv/" />
     <title>empty.tv - Redirecting...</title>
     <script>
-      // Aggressive redirect for empty.tv paths
-      var l = window.location;
-      var path = l.pathname;
+      // Cross-browser compatible redirect for empty.tv paths
+      (function () {
+        var l = window.location;
+        var path = l.pathname;
+        var search = l.search;
+        var hash = l.hash;
 
-      // Debug info
-      console.log("404 Redirect Debug:", {
-        pathname: path,
-        hostname: l.hostname,
-        href: l.href,
-      });
+        // Debug info
+        console.log("404 Cross-browser redirect:", {
+          pathname: path,
+          search: search,
+          hash: hash,
+          userAgent: navigator.userAgent,
+        });
 
-      var segments = path.split("/").filter(function (segment) {
-        return segment !== "";
-      });
+        // Function to perform redirect with multiple fallbacks
+        function performRedirect(targetUrl) {
+          console.log("Redirecting to:", targetUrl);
 
-      // AGGRESSIVE REDIRECT FOR EMPTY.TV
-      if (
-        path.indexOf("empty.tv") !== -1 ||
-        path === "/empty.tv" ||
-        path === "/empty.tv/" ||
-        (segments.length > 0 && segments[0] === "empty.tv")
-      ) {
-        console.log("Redirecting empty.tv to /tv/");
-        // Multiple redirect methods to ensure it works
-        try {
-          window.location.replace("/tv/");
-        } catch (e) {
-          window.location.href = "/tv/";
+          // Method 1: location.replace (preferred)
+          try {
+            window.location.replace(targetUrl);
+            return;
+          } catch (e) {
+            console.warn("location.replace failed:", e);
+          }
+
+          // Method 2: location.href
+          try {
+            window.location.href = targetUrl;
+            return;
+          } catch (e) {
+            console.warn("location.href failed:", e);
+          }
+
+          // Method 3: location.assign
+          try {
+            window.location.assign(targetUrl);
+            return;
+          } catch (e) {
+            console.warn("location.assign failed:", e);
+          }
+
+          // Method 4: Force with timeout
+          setTimeout(function () {
+            window.location = targetUrl;
+          }, 50);
         }
-        // Fallback with full URL
-        setTimeout(function () {
-          window.location.href = "https://empty.rocks/tv/";
-        }, 100);
-        return;
-      } else if (segments.length > 0 && segments[0] === "tv") {
-        if (segments.length > 1) {
-          var newPath = "/" + segments.slice(1).join("/");
-          window.location.href = "/tv/#" + newPath;
-          return;
-        } else {
-          // Just redirect to the tv app
-          window.location.href = "/tv/";
+
+        // Check for empty.tv paths
+        if (path.indexOf("empty.tv") !== -1) {
+          // Handle /empty.tv/tv/ -> /tv/
+          if (path.indexOf("/empty.tv/tv/") !== -1) {
+            var remainingPath = path.replace("/empty.tv/tv/", "/");
+            var targetUrl = "/tv" + remainingPath + search + hash;
+            performRedirect(targetUrl);
+            return;
+          }
+
+          // Handle /empty.tv/ -> /tv/
+          if (path === "/empty.tv" || path === "/empty.tv/") {
+            performRedirect("/tv/" + search + hash);
+            return;
+          }
+
+          // Handle /empty.tv/anything -> /tv/anything
+          var newPath = path.replace(/^\/empty\.tv/, "");
+          performRedirect("/tv" + newPath + search + hash);
           return;
         }
-      } else {
-        // Redirect to main dashboard (will be created later)
-        window.location.href = "/";
-      }
+
+        // Handle SPA routing for /tv/ paths
+        var segments = path.split("/").filter(function (s) {
+          return s !== "";
+        });
+
+        if (segments.length > 0 && segments[0] === "tv") {
+          if (segments.length > 1) {
+            // Convert path to hash routing: /tv/movie/123 -> /tv/#/movie/123
+            var routePath = "/" + segments.slice(1).join("/");
+            performRedirect("/tv/#" + routePath + search + hash);
+            return;
+          } else {
+            // Just /tv -> /tv/
+            performRedirect("/tv/" + search + hash);
+            return;
+          }
+        }
+
+        // Default redirect to root
+        performRedirect("/" + search + hash);
+      })();
     </script>
     <style>
       body {
