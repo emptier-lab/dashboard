@@ -151,10 +151,18 @@ const app = createApp(App).use(router).use(vuetify);
 
 app.mount("#app");
 
-// Initialize AdBlocker after mounting to prevent interference
+// Simple CSS-only ad blocking - no network interference
 setTimeout(() => {
-  import("./services/adblocker").then(({ adBlocker }) => {
-    // AdBlocker initialized after app mount
-    console.log("🛡️ AdBlocker loaded");
-  });
-}, 1000);
+  const style = document.createElement("style");
+  style.innerHTML = `
+    /* Block known ad networks */
+    iframe[src*="googleads"], iframe[src*="doubleclick"], iframe[src*="outbrain"],
+    iframe[src*="taboola"], iframe[src*="popads"], iframe[src*="exoclick"],
+    .video-ads, .player-ads, .preroll, .midroll, .postroll,
+    [href*="porn"], [href*="xxx"], [href*="adult"], [href*="casino"] {
+      display: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+  console.log("🛡️ CSS AdBlocker active");
+}, 500);

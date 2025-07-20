@@ -226,34 +226,26 @@ class EnhancedAdBlocker {
   }
 
   setupNetworkBlocking() {
-    // Override fetch to block requests (but allow essential app requests)
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const url = args[0];
-      if (
-        typeof url === "string" &&
-        this.shouldBlockURL(url) &&
-        !this.isEssentialURL(url)
-      ) {
-        this.blockedCount++;
-        console.log("🚫 Blocked request:", url);
-        return Promise.reject(new Error("Blocked by AdBlocker"));
-      }
-      return originalFetch.apply(this, args);
-    };
+    // Only block obvious ad networks, not API calls
+    console.log("🛡️ Setting up selective network blocking");
 
-    // Override XMLHttpRequest (but allow essential requests)
-    const originalXHROpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function (method, url, ...args) {
+    // Don't override fetch or XHR - too risky for app functionality
+    // Instead, rely on CSS blocking and DOM manipulation
+
+    // Only block script loading from known ad networks
+    const originalAppendChild = Node.prototype.appendChild;
+    Node.prototype.appendChild = function (child) {
       if (
-        window.adBlocker?.shouldBlockURL(url) &&
-        !window.adBlocker?.isEssentialURL(url)
+        child &&
+        child.tagName === "SCRIPT" &&
+        child.src &&
+        window.adBlocker?.isKnownAdNetwork(child.src)
       ) {
         window.adBlocker.blockedCount++;
-        console.log("🚫 Blocked XHR:", url);
-        return;
+        console.log("🚫 Blocked ad script:", child.src);
+        return child;
       }
-      return originalXHROpen.call(this, method, url, ...args);
+      return originalAppendChild.call(this, child);
     };
   }
 
@@ -526,47 +518,28 @@ class EnhancedAdBlocker {
     return false;
   }
 
-  isEssentialURL(url) {
+  isKnownAdNetwork(url) {
     if (!url) return false;
 
     const urlLower = url.toLowerCase();
 
-    // Allow essential app domains and APIs
-    const essentialDomains = [
-      "api.themoviedb.org",
-      "image.tmdb.org",
-      "fonts.googleapis.com",
-      "fonts.gstatic.com",
-      "emptier-lab.github.io",
-      "empty.rocks",
-      "localhost",
-      "127.0.0.1",
+    // Only block obvious ad networks
+    const knownAdNetworks = [
+      "googleads",
+      "googlesyndication",
+      "doubleclick",
+      "outbrain",
+      "taboola",
+      "popads",
+      "exoclick",
+      "propellerads",
+      "revcontent",
+      "mgid",
+      "adnxs",
+      "amazon-adsystem",
     ];
 
-    // Allow essential file types
-    const essentialPatterns = [
-      /\.(js|css|woff|woff2|ttf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/i,
-      /\/assets\//i,
-      /\/dist\//i,
-      /vite\.svg/i,
-      /main\.js/i,
-      /index\./i,
-    ];
-
-    // Check if URL is essential
-    for (const domain of essentialDomains) {
-      if (urlLower.includes(domain)) {
-        return true;
-      }
-    }
-
-    for (const pattern of essentialPatterns) {
-      if (pattern.test(url)) {
-        return true;
-      }
-    }
-
-    return false;
+    return knownAdNetworks.some((network) => urlLower.includes(network));
   }
 
   containsSuspiciousContent(text) {
