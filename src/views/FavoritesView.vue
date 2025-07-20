@@ -19,10 +19,21 @@
             md="3"
             lg="2"
           >
-            <MediaCard
-              :item="item"
-              :media-type="item.media_type || 'movie'"
-            />
+            <div class="media-card-wrapper">
+              <MediaCard
+                :item="item"
+                :media-type="item.media_type || 'movie'"
+              />
+              <v-btn
+                icon="mdi-close"
+                size="small"
+                color="error"
+                variant="text"
+                class="remove-button"
+                @click="removeFavorite(item)"
+                title="Remove from favorites"
+              />
+            </div>
           </v-col>
         </v-row>
       </div>
@@ -41,8 +52,9 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import MediaCard from '@/components/common/MediaCard.vue'
+import { localStorageService } from '@/services/localStorage'
 
 export default {
   name: 'FavoritesView',
@@ -53,16 +65,30 @@ export default {
     const favorites = ref([])
 
     function loadFavorites() {
-      const stored = localStorage.getItem('empty-tv-favorites')
-      favorites.value = stored ? JSON.parse(stored) : []
+      favorites.value = localStorageService.getFavorites()
+    }
+
+    function removeFavorite(item) {
+      if (item && item.id) {
+        localStorageService.removeFromFavorites(item.id, item.media_type)
+        loadFavorites() // Reload favorites after removal
+      }
     }
 
     onMounted(() => {
       loadFavorites()
     })
 
+    // Refresh favorites if localStorage might have changed
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'empty-tv-favorites') {
+        loadFavorites()
+      }
+    })
+
     return {
-      favorites
+      favorites,
+      removeFavorite
     }
   }
 }
@@ -100,6 +126,27 @@ export default {
 
 .favorites-grid {
   width: 100%;
+}
+
+.media-card-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.remove-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.media-card-wrapper:hover .remove-button {
+  opacity: 1;
 }
 
 .empty-state {

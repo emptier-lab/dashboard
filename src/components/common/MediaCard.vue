@@ -107,6 +107,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { imageService, utilsService } from '@/services/tmdb'
+import { localStorageService } from '@/services/localStorage'
 
 export default {
   name: 'MediaCard',
@@ -206,49 +207,35 @@ export default {
     }
 
     function toggleFavorite() {
-      isFavorite.value = !isFavorite.value
+      const itemWithType = { ...props.item, media_type: props.mediaType };
 
-      const favorites = JSON.parse(localStorage.getItem('empty-tv-favorites') || '[]')
-      const itemWithType = { ...props.item, media_type: props.mediaType }
+      // Use the localStorage service to toggle favorite status
+      localStorageService.toggleFavorite(itemWithType);
 
-      if (isFavorite.value) {
-        favorites.push(itemWithType)
-      } else {
-        const index = favorites.findIndex(fav => fav.id === props.item.id && fav.media_type === props.mediaType)
-        if (index > -1) {
-          favorites.splice(index, 1)
-        }
-      }
+      // Update local state
+      isFavorite.value = localStorageService.isFavorite(props.item.id, props.mediaType);
 
-      localStorage.setItem('empty-tv-favorites', JSON.stringify(favorites))
-
+      // Emit event for parent components
       emit('favorite', {
         item: props.item,
         isFavorite: isFavorite.value
-      })
+      });
     }
 
     function toggleWatchlist() {
-      isInWatchlist.value = !isInWatchlist.value
+      const itemWithType = { ...props.item, media_type: props.mediaType };
 
-      const watchlist = JSON.parse(localStorage.getItem('empty-tv-watchlist') || '[]')
-      const itemWithType = { ...props.item, media_type: props.mediaType }
+      // Use the localStorage service to toggle watchlist status
+      localStorageService.toggleWatchlist(itemWithType);
 
-      if (isInWatchlist.value) {
-        watchlist.push(itemWithType)
-      } else {
-        const index = watchlist.findIndex(item => item.id === props.item.id && item.media_type === props.mediaType)
-        if (index > -1) {
-          watchlist.splice(index, 1)
-        }
-      }
+      // Update local state
+      isInWatchlist.value = localStorageService.isInWatchlist(props.item.id, props.mediaType);
 
-      localStorage.setItem('empty-tv-watchlist', JSON.stringify(watchlist))
-
+      // Emit event for parent components
       emit('watchlist', {
         item: props.item,
         isInWatchlist: isInWatchlist.value
-      })
+      });
     }
 
     function formatRating(rating) {
@@ -271,18 +258,24 @@ export default {
     }
 
     function checkFavoriteStatus() {
-      const favorites = JSON.parse(localStorage.getItem('empty-tv-favorites') || '[]')
-      isFavorite.value = favorites.some(fav => fav.id === props.item.id && fav.media_type === props.mediaType)
+      isFavorite.value = localStorageService.isFavorite(props.item.id, props.mediaType);
     }
 
     function checkWatchlistStatus() {
-      const watchlist = JSON.parse(localStorage.getItem('empty-tv-watchlist') || '[]')
-      isInWatchlist.value = watchlist.some(item => item.id === props.item.id && item.media_type === props.mediaType)
+      isInWatchlist.value = localStorageService.isInWatchlist(props.item.id, props.mediaType);
     }
 
     onMounted(() => {
-      checkFavoriteStatus()
-      checkWatchlistStatus()
+      checkFavoriteStatus();
+      checkWatchlistStatus();
+
+      // Add listener for storage events from other tabs
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'empty-tv-favorites' || event.key === 'empty-tv-watchlist') {
+          checkFavoriteStatus();
+          checkWatchlistStatus();
+        }
+      });
     })
 
     return {

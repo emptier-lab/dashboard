@@ -20,11 +20,22 @@
             lg="2"
             class="d-flex"
           >
-            <MediaCard
-              :item="item"
-              :media-type="item.media_type || 'movie'"
-              class="flex-grow-1"
-            />
+            <div class="media-card-wrapper">
+              <MediaCard
+                :item="item"
+                :media-type="item.media_type || 'movie'"
+                class="flex-grow-1"
+              />
+              <v-btn
+                icon="mdi-close"
+                size="small"
+                color="error"
+                variant="text"
+                class="remove-button"
+                @click="removeFromWatchlist(item)"
+                title="Remove from watchlist"
+              />
+            </div>
           </v-col>
         </v-row>
       </div>
@@ -43,8 +54,9 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import MediaCard from '@/components/common/MediaCard.vue'
+import { localStorageService } from '@/services/localStorage'
 
 export default {
   name: 'WatchlistView',
@@ -55,16 +67,30 @@ export default {
     const watchlist = ref([])
 
     function loadWatchlist() {
-      const stored = localStorage.getItem('empty-tv-watchlist')
-      watchlist.value = stored ? JSON.parse(stored) : []
+      watchlist.value = localStorageService.getWatchlist()
+    }
+
+    function removeFromWatchlist(item) {
+      if (item && item.id) {
+        localStorageService.removeFromWatchlist(item.id, item.media_type)
+        loadWatchlist() // Reload watchlist after removal
+      }
     }
 
     onMounted(() => {
       loadWatchlist()
     })
 
+    // Refresh watchlist if localStorage might have changed
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'empty-tv-watchlist') {
+        loadWatchlist()
+      }
+    })
+
     return {
-      watchlist
+      watchlist,
+      removeFromWatchlist
     }
   }
 }
@@ -102,6 +128,27 @@ export default {
 
 .watchlist-grid {
   width: 100%;
+}
+
+.media-card-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.remove-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.media-card-wrapper:hover .remove-button {
+  opacity: 1;
 }
 
 .empty-state {

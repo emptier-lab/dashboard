@@ -221,6 +221,7 @@ import { useRoute, useRouter } from 'vue-router'
 import VideoPlayer from '@/components/common/VideoPlayer.vue'
 import MediaCard from '@/components/common/MediaCard.vue'
 import { tmdbService, imageService, utilsService } from '@/services/tmdb'
+import { localStorageService } from '@/services/localStorage'
 
 export default {
   name: 'WatchView',
@@ -323,19 +324,47 @@ export default {
     }
 
     function toggleFavorite() {
-      isFavorite.value = !isFavorite.value
+      if (media.value) {
+        const mediaItem = {
+          ...media.value,
+          media_type: mediaType.value
+        };
+        const result = localStorageService.toggleFavorite(mediaItem);
+        isFavorite.value = localStorageService.isFavorite(mediaId.value, mediaType.value);
+
+        // Show notification if needed
+        // snackbar.value = { show: true, text: isFavorite.value ? 'Added to favorites' : 'Removed from favorites' };
+      }
     }
 
     function toggleWatchlist() {
-      isInWatchlist.value = !isInWatchlist.value
+      if (media.value) {
+        const mediaItem = {
+          ...media.value,
+          media_type: mediaType.value
+        };
+        const result = localStorageService.toggleWatchlist(mediaItem);
+        isInWatchlist.value = localStorageService.isInWatchlist(mediaId.value, mediaType.value);
+
+        // Show notification if needed
+        // snackbar.value = { show: true, text: isInWatchlist.value ? 'Added to watchlist' : 'Removed from watchlist' };
+      }
     }
 
     function checkFavoriteStatus() {
-      isFavorite.value = false
+      if (mediaId.value && mediaType.value) {
+        isFavorite.value = localStorageService.isFavorite(mediaId.value, mediaType.value);
+      } else {
+        isFavorite.value = false;
+      }
     }
 
     function checkWatchlistStatus() {
-      isInWatchlist.value = false
+      if (mediaId.value && mediaType.value) {
+        isInWatchlist.value = localStorageService.isInWatchlist(mediaId.value, mediaType.value);
+      } else {
+        isInWatchlist.value = false;
+      }
     }
 
     function getReleaseDate() {
@@ -373,6 +402,23 @@ export default {
       loadMedia()
     })
 
+    // Watch for media loaded to check favorite/watchlist status and update recently watched
+    watch(media, (newMedia) => {
+      if (newMedia) {
+        checkFavoriteStatus()
+        checkWatchlistStatus()
+
+        // Add to recently watched when media changes
+        if (mediaId.value && mediaType.value) {
+          localStorageService.addToRecentlyWatched(
+            newMedia,
+            mediaType.value === 'tv' ? currentSeason.value : null,
+            mediaType.value === 'tv' ? currentEpisode.value : null
+          );
+        }
+      }
+    })
+
     watch(currentSeason, () => {
       if (mediaType.value === 'tv') {
         loadSeasonDetails()
@@ -381,6 +427,15 @@ export default {
 
     onMounted(() => {
       loadMedia()
+
+      // Add the media to recently watched when viewing
+      if (mediaId.value && mediaType.value && media.value) {
+        localStorageService.addToRecentlyWatched(
+          media.value,
+          mediaType.value === 'tv' ? currentSeason.value : null,
+          mediaType.value === 'tv' ? currentEpisode.value : null
+        );
+      }
     })
 
     return {
