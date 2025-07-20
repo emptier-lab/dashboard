@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build:dashboard
+        run: npm run build:rocks
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
