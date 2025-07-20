@@ -4,16 +4,32 @@
     <v-main>
       <router-view />
     </v-main>
+
+    <!-- AdBlocker Status Component -->
+    <AdBlockerStatus
+      :auto-hide="true"
+      :auto-hide-delay="15000"
+      :show-floating="true"
+    />
   </v-app>
 </template>
 
 <script>
 import AppNavigation from '@/components/layout/AppNavigation.vue'
+import AdBlockerStatus from '@/components/common/AdBlockerStatus.vue'
+import { adBlocker } from '@/services/adblocker'
 
 export default {
   name: 'App',
   components: {
-    AppNavigation
+    AppNavigation,
+    AdBlockerStatus
+  },
+  mounted() {
+    // Initialize AdBlocker
+    if (adBlocker) {
+      console.log('AdBlocker initialized and active')
+    }
   }
 }
 </script>
@@ -43,6 +59,180 @@ export default {
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* COMPREHENSIVE AD BLOCKER CSS */
+/* Block common ad selectors */
+[class*="ad-"]:not([class*="add"]):not([class*="radio"]):not([class*="head"]):not([class*="read"]):not([class*="thread"]),
+[class*="ads-"],
+[class*="advertisement"],
+[class*="banner"]:not([class*="page-banner"]):not([class*="hero-banner"]),
+[class*="popup"]:not([class*="tooltip"]),
+[class*="modal"]:not([class*="video-modal"]):not([class*="search-modal"]),
+[id*="ad-"]:not([id*="add"]):not([id*="radio"]):not([id*="head"]):not([id*="read"]):not([id*="thread"]),
+[id*="ads-"],
+[id*="advertisement"],
+[id*="banner"]:not([id*="page-banner"]):not([id*="hero-banner"]),
+[id*="popup"]:not([id*="tooltip"]),
+[id*="modal"]:not([id*="video-modal"]):not([id*="search-modal"]),
+.ad:not(.add):not(.radio):not(.head):not(.read):not(.thread),
+.ads,
+.advertisement,
+.banner:not(.page-banner):not(.hero-banner),
+.popup:not(.tooltip),
+.modal:not(.video-modal):not(.search-modal),
+.sponsored,
+.promo,
+.promotion,
+.commercial,
+.affiliate,
+.advert,
+.adspace,
+.adslot,
+.adblock,
+.adsbox,
+.adsbanner,
+.adsense,
+.google-ad,
+.facebook-ad,
+.twitter-ad,
+.youtube-ad,
+.instagram-ad,
+.linkedin-ad,
+.snapchat-ad,
+.tiktok-ad,
+.pinterest-ad,
+.reddit-ad,
+.outbrain,
+.taboola,
+.mgid,
+.revcontent,
+.adblade,
+.contentad,
+.nativo,
+.sharethrough,
+.virool,
+.teads,
+.undertone,
+.pubmatic,
+.rubiconproject,
+.openx,
+.criteo,
+.smartadserver,
+.advertising,
+.monetization,
+iframe[src*="googleads"],
+iframe[src*="googlesyndication"],
+iframe[src*="doubleclick"],
+iframe[src*="amazon-adsystem"],
+iframe[src*="facebook.com/tr"],
+iframe[src*="outbrain"],
+iframe[src*="taboola"],
+iframe[src*="media.net"],
+iframe[src*="criteo"],
+iframe[src*="pubmatic"],
+iframe[src*="rubiconproject"],
+iframe[src*="casalemedia"],
+iframe[src*="smartadserver"],
+iframe[src*="openx"],
+iframe[src*="adsystem"],
+iframe[src*="advertising"],
+script[src*="googleads"],
+script[src*="googlesyndication"],
+script[src*="doubleclick"],
+script[src*="google-analytics"],
+script[src*="googletagmanager"],
+script[src*="facebook.com/tr"],
+script[src*="connect.facebook.net"],
+script[src*="amazon-adsystem"],
+script[src*="outbrain"],
+script[src*="taboola"],
+script[src*="media.net"],
+script[src*="criteo"],
+script[src*="pubmatic"],
+script[src*="rubiconproject"],
+script[src*="casalemedia"],
+script[src*="smartadserver"],
+script[src*="openx"],
+script[src*="adsystem"],
+script[src*="advertising"],
+link[href*="googleads"],
+link[href*="googlesyndication"],
+link[href*="doubleclick"],
+link[href*="google-analytics"],
+link[href*="googletagmanager"],
+img[src*="googleads"],
+img[src*="googlesyndication"],
+img[src*="doubleclick"],
+img[src*="google-analytics"],
+img[src*="facebook.com/tr"],
+img[src*="amazon-adsystem"],
+img[src*="outbrain"],
+img[src*="taboola"],
+img[src*="media.net"],
+img[src*="criteo"],
+img[src*="pubmatic"],
+img[src*="rubiconproject"],
+img[src*="casalemedia"],
+img[src*="smartadserver"],
+img[src*="openx"],
+img[src*="adsystem"],
+img[src*="advertising"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+
+/* Block tracking pixels */
+img[width="1"][height="1"],
+img[style*="width:1px"],
+img[style*="height:1px"],
+img[style*="width: 1px"],
+img[style*="height: 1px"] {
+  display: none !important;
+}
+
+/* Block empty iframes that might be ads */
+iframe[width="0"],
+iframe[height="0"],
+iframe[style*="width:0"],
+iframe[style*="height:0"],
+iframe[style*="width: 0"],
+iframe[style*="height: 0"] {
+  display: none !important;
+}
+
+/* Block overlay ads */
+[style*="position:fixed"][style*="z-index"]:not(.video-player):not(.search-results):not(.navigation):not(.header):not(.footer):not(.adblocker-status) {
+  display: none !important;
+}
+
+/* Block popups and modals with high z-index */
+[style*="z-index: 999"]:not(.video-player):not(.search-results):not(.navigation):not(.header):not(.footer):not(.adblocker-status),
+[style*="z-index:999"]:not(.video-player):not(.search-results):not(.navigation):not(.header):not(.footer):not(.adblocker-status) {
+  display: none !important;
+}
+
+/* Mobile specific ad blocking */
+@media (max-width: 768px) {
+  [class*="mobile-ad"],
+  [class*="mobile-banner"],
+  [id*="mobile-ad"],
+  [id*="mobile-banner"],
+  .mobile-ad,
+  .mobile-banner {
+    display: none !important;
+  }
 }
 
 * {

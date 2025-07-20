@@ -3,6 +3,9 @@ import { createVuetify } from "vuetify";
 import { createRouter, createWebHistory } from "vue-router";
 import App from "./App.vue";
 
+// Initialize AdBlocker immediately
+import { adBlocker } from "./services/adblocker";
+
 // Vuetify
 import "vuetify/styles";
 import "@mdi/font/css/materialdesignicons.css";
@@ -146,4 +149,17 @@ const vuetify = createVuetify({
 });
 
 // Create and mount app
-createApp(App).use(router).use(vuetify).mount("#app");
+const app = createApp(App).use(router).use(vuetify);
+
+// Initialize AdBlocker before mounting
+if (adBlocker) {
+  console.log("🛡️ AdBlocker initialized - protecting against ads and trackers");
+
+  // Show initial stats after a short delay
+  setTimeout(() => {
+    const stats = adBlocker.getStats();
+    console.log("🛡️ AdBlocker Stats:", stats);
+  }, 3000);
+}
+
+app.mount("#app");
