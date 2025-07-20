@@ -57,29 +57,35 @@
       </div>
 
       <div class="iframe-container">
-        <!-- VidLink iframe without sandbox -->
+        <!-- iOS-compatible iframe without sandbox restrictions -->
         <iframe
-          v-if="currentEmbedUrl && isVidLink"
+          v-if="currentEmbedUrl && (isVidLink || isMobileDevice)"
           :src="currentEmbedUrl"
           width="100%"
           height="100%"
           frameborder="0"
           allowfullscreen
+          webkitallowfullscreen
+          mozallowfullscreen
+          allow="autoplay; fullscreen; picture-in-picture"
           referrerpolicy="origin"
           loading="lazy"
           class="video-iframe"
           @error="handleIframeError"
         />
 
-        <!-- Other sources with sandbox -->
+        <!-- Desktop iframe with sandbox -->
         <iframe
-          v-if="currentEmbedUrl && !isVidLink"
+          v-if="currentEmbedUrl && !isVidLink && !isMobileDevice"
           :src="currentEmbedUrl"
           width="100%"
           height="100%"
           frameborder="0"
           allowfullscreen
-          sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+          webkitallowfullscreen
+          mozallowfullscreen
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation allow-top-navigation-by-user-activation"
+          allow="autoplay; fullscreen; picture-in-picture"
           referrerpolicy="origin"
           loading="lazy"
           class="video-iframe"
@@ -187,6 +193,10 @@ export default {
       return currentSource.value?.name?.toLowerCase().includes('vidlink') || false
     })
 
+    const isMobileDevice = computed(() => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    })
+
     const backdropUrl = computed(() => {
       return props.backdropPath ? imageService.getBackdropUrl(props.backdropPath, 'w1280') : null
     })
@@ -232,13 +242,16 @@ export default {
 
     function loadEmbedSources() {
       try {
+        const preferMobile = isMobileDevice.value
+
         if (props.mediaType === 'movie') {
-          availableSources.value = videoEmbedService.getMovieEmbeds(props.tmdbId)
+          availableSources.value = videoEmbedService.getMovieEmbeds(props.tmdbId, preferMobile)
         } else {
           availableSources.value = videoEmbedService.getTVEmbeds(
             props.tmdbId,
             selectedSeason.value,
-            selectedEpisode.value
+            selectedEpisode.value,
+            preferMobile
           )
         }
 
@@ -303,6 +316,7 @@ export default {
       availableSources,
       showSourceInfo,
       isVidLink,
+      isMobileDevice,
       backdropUrl,
       currentSource,
       currentEmbedUrl,
@@ -336,6 +350,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 300px;
 }
 
 .player-placeholder:hover {
@@ -445,11 +460,14 @@ export default {
   width: 100%;
   height: 500px;
   background: #000;
+  min-height: 300px;
 }
 
 .video-iframe {
   display: block;
   background: #000;
+  border: none;
+  outline: none;
 }
 .source-info {
   padding: 12px 20px;
@@ -499,20 +517,26 @@ export default {
 
 @media (max-width: 768px) {
   .player-placeholder {
-    height: 300px;
+    height: 350px;
+    border-radius: 8px;
   }
 
   .player-header {
     padding: 12px 16px;
     min-height: 50px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
   }
 
   .player-controls {
-    justify-content: flex-end;
+    justify-content: flex-start;
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .iframe-container {
-    height: 300px;
+    height: 350px;
   }
 
   .play-button {
@@ -525,25 +549,39 @@ export default {
 
   .player-info {
     margin-bottom: 0;
+    width: 100%;
+  }
+
+  .player-title {
+    font-size: 1rem;
+  }
+
+  .player-meta {
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
   .player-placeholder {
-    height: 250px;
+    height: 280px;
+    border-radius: 6px;
   }
 
   .iframe-container {
-    height: 250px;
+    height: 280px;
   }
 
   .player-header {
     padding: 10px 12px;
     min-height: 45px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
   }
 
   .play-button {
     font-size: 2.5rem !important;
+    margin-bottom: 12px;
   }
 
   .play-text {
@@ -557,10 +595,60 @@ export default {
   .source-btn {
     flex: 1;
     min-width: auto;
+    font-size: 0.7rem;
+    padding: 4px 8px;
   }
 
   .source-info {
     padding: 12px 16px;
+  }
+
+  .player-title {
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  .player-meta {
+    font-size: 0.75rem;
+  }
+
+  .player-controls {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .close-btn {
+    align-self: flex-end;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .video-iframe {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .iframe-container {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .player-placeholder,
+  .iframe-container {
+    height: 70vh;
+    min-height: 250px;
+  }
+
+  .player-header {
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+
+  .play-button {
+    font-size: 2.5rem !important;
   }
 }
 </style>
