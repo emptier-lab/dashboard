@@ -207,13 +207,28 @@ export default {
     }
 
     function toggleFavorite() {
-      const itemWithType = { ...props.item, media_type: props.mediaType };
+      console.log('Toggle favorite called for item:', props.item);
+      const itemWithType = {
+        ...props.item,
+        media_type: props.mediaType,
+        // Ensure we have title and name properties for display in lists
+        title: props.item.title || props.item.name || 'Unknown Title',
+        name: props.item.name || props.item.title || 'Unknown Title'
+      };
+
+      console.log('Item prepared for favorites:', itemWithType);
 
       // Use the localStorage service to toggle favorite status
-      localStorageService.toggleFavorite(itemWithType);
+      const result = localStorageService.toggleFavorite(itemWithType);
+      console.log('toggleFavorite result:', result);
 
       // Update local state
       isFavorite.value = localStorageService.isFavorite(props.item.id, props.mediaType);
+      console.log('isFavorite state updated to:', isFavorite.value);
+
+      // Trigger storage event for other tabs/components
+      window.dispatchEvent(new Event('storage'));
+      console.log('Storage event dispatched for favorites');
 
       // Emit event for parent components
       emit('favorite', {
@@ -223,13 +238,28 @@ export default {
     }
 
     function toggleWatchlist() {
-      const itemWithType = { ...props.item, media_type: props.mediaType };
+      console.log('Toggle watchlist called for item:', props.item);
+      const itemWithType = {
+        ...props.item,
+        media_type: props.mediaType,
+        // Ensure we have title and name properties for display in lists
+        title: props.item.title || props.item.name || 'Unknown Title',
+        name: props.item.name || props.item.title || 'Unknown Title'
+      };
+
+      console.log('Item prepared for watchlist:', itemWithType);
 
       // Use the localStorage service to toggle watchlist status
-      localStorageService.toggleWatchlist(itemWithType);
+      const result = localStorageService.toggleWatchlist(itemWithType);
+      console.log('toggleWatchlist result:', result);
 
       // Update local state
       isInWatchlist.value = localStorageService.isInWatchlist(props.item.id, props.mediaType);
+      console.log('isInWatchlist state updated to:', isInWatchlist.value);
+
+      // Trigger storage event for other tabs/components
+      window.dispatchEvent(new Event('storage'));
+      console.log('Storage event dispatched for watchlist');
 
       // Emit event for parent components
       emit('watchlist', {
@@ -258,23 +288,26 @@ export default {
     }
 
     function checkFavoriteStatus() {
+      console.log('Checking favorite status for:', props.item.id, props.mediaType);
       isFavorite.value = localStorageService.isFavorite(props.item.id, props.mediaType);
+      console.log('Favorite status is:', isFavorite.value);
     }
 
     function checkWatchlistStatus() {
+      console.log('Checking watchlist status for:', props.item.id, props.mediaType);
       isInWatchlist.value = localStorageService.isInWatchlist(props.item.id, props.mediaType);
+      console.log('Watchlist status is:', isInWatchlist.value);
     }
 
     onMounted(() => {
       checkFavoriteStatus();
       checkWatchlistStatus();
 
-      // Add listener for storage events from other tabs
-      window.addEventListener('storage', (event) => {
-        if (event.key === 'empty-tv-favorites' || event.key === 'empty-tv-watchlist') {
-          checkFavoriteStatus();
-          checkWatchlistStatus();
-        }
+      // Add listener for storage events from other tabs or from direct dispatch
+      window.addEventListener('storage', () => {
+        console.log('Storage event received in MediaCard for item:', props.item.id);
+        checkFavoriteStatus();
+        checkWatchlistStatus();
       });
     })
 

@@ -41,9 +41,23 @@ export class LocalStorageService {
         return false; // Already in favorites
       }
 
+      // Ensure the item has required fields
+      const enrichedItem = {
+        ...item,
+        title: item.title || item.name || "Unknown Title",
+        name: item.name || item.title || "Unknown Title",
+        id: Number(item.id) || item.id, // Ensure ID is a number if possible
+        media_type: item.media_type || "movie",
+        added_date: new Date().toISOString(),
+      };
+
       // Add to favorites
-      favorites.push(item);
+      favorites.push(enrichedItem);
       localStorage.setItem(this.favoriteKey, JSON.stringify(favorites));
+
+      // Dispatch a custom event to notify components
+      window.dispatchEvent(new Event("storage"));
+
       return true;
     } catch (error) {
       console.error("Error adding to favorites:", error);
@@ -63,6 +77,10 @@ export class LocalStorageService {
       }
 
       localStorage.setItem(this.favoriteKey, JSON.stringify(filteredFavorites));
+
+      // Dispatch a custom event to notify components
+      window.dispatchEvent(new Event("storage"));
+
       return true;
     } catch (error) {
       console.error("Error removing from favorites:", error);
@@ -90,8 +108,13 @@ export class LocalStorageService {
     if (this.isFavorite(item.id, mediaType)) {
       return this.removeFromFavorites(item.id, mediaType);
     } else {
-      // Ensure the item has media_type
-      const itemToAdd = { ...item, media_type: mediaType };
+      // Ensure the item has media_type and required fields
+      const itemToAdd = {
+        ...item,
+        media_type: mediaType,
+        title: item.title || item.name || "Unknown Title",
+        name: item.name || item.title || "Unknown Title",
+      };
       return this.addToFavorites(itemToAdd);
     }
   }
@@ -125,6 +148,16 @@ export class LocalStorageService {
         return false; // Already in watchlist
       }
 
+      // Ensure the item has required fields
+      const enrichedItem = {
+        ...item,
+        title: item.title || item.name || "Unknown Title",
+        name: item.name || item.title || "Unknown Title",
+        id: Number(item.id) || item.id, // Ensure ID is a number if possible
+        media_type: item.media_type || "movie",
+        added_date: new Date().toISOString(),
+      };
+
       // Set default watch-by date if not provided (current date + reminderDays)
       const watchByDate =
         reminderDate ||
@@ -134,7 +167,7 @@ export class LocalStorageService {
 
       // Add to watchlist with date information
       const itemWithDate = {
-        ...item,
+        ...enrichedItem,
         addedDate: new Date().toISOString(),
         watchByDate: watchByDate,
         notified: false,
@@ -142,6 +175,10 @@ export class LocalStorageService {
 
       watchlist.push(itemWithDate);
       localStorage.setItem(this.watchlistKey, JSON.stringify(watchlist));
+
+      // Dispatch a custom event to notify components
+      window.dispatchEvent(new Event("storage"));
+
       return true;
     } catch (error) {
       console.error("Error adding to watchlist:", error);
@@ -164,6 +201,10 @@ export class LocalStorageService {
         this.watchlistKey,
         JSON.stringify(filteredWatchlist),
       );
+
+      // Dispatch a custom event to notify components
+      window.dispatchEvent(new Event("storage"));
+
       return true;
     } catch (error) {
       console.error("Error removing from watchlist:", error);
@@ -191,8 +232,13 @@ export class LocalStorageService {
     if (this.isInWatchlist(item.id, mediaType)) {
       return this.removeFromWatchlist(item.id, mediaType);
     } else {
-      // Ensure the item has media_type
-      const itemToAdd = { ...item, media_type: mediaType };
+      // Ensure the item has media_type and required fields
+      const itemToAdd = {
+        ...item,
+        media_type: mediaType,
+        title: item.title || item.name || "Unknown Title",
+        name: item.name || item.title || "Unknown Title",
+      };
       return this.addToWatchlist(itemToAdd);
     }
   }
@@ -287,6 +333,10 @@ export class LocalStorageService {
       });
 
       localStorage.setItem(this.watchlistKey, JSON.stringify(updated));
+
+      // Dispatch a custom event to notify components
+      window.dispatchEvent(new Event("storage"));
+
       return true;
     } catch (error) {
       console.error("Error marking item as notified:", error);
@@ -310,6 +360,10 @@ export class LocalStorageService {
       });
 
       localStorage.setItem(this.watchlistKey, JSON.stringify(updated));
+
+      // Dispatch a custom event to notify components
+      window.dispatchEvent(new Event("storage"));
+
       return true;
     } catch (error) {
       console.error("Error updating watch-by date:", error);

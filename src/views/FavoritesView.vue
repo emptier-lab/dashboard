@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import MediaCard from '@/components/common/MediaCard.vue'
 import { localStorageService } from '@/services/localStorage'
 
@@ -66,6 +66,7 @@ export default {
 
     function loadFavorites() {
       favorites.value = localStorageService.getFavorites()
+      console.log('Favorites loaded:', favorites.value.length)
     }
 
     function removeFavorite(item) {
@@ -75,15 +76,20 @@ export default {
       }
     }
 
+    // Watch for storage events
+    function handleStorageEvent() {
+      loadFavorites()
+    }
+
     onMounted(() => {
       loadFavorites()
+      // Add event listener for storage changes (works for both real storage events and our custom dispatched events)
+      window.addEventListener('storage', handleStorageEvent)
     })
 
-    // Refresh favorites if localStorage might have changed
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'empty-tv-favorites') {
-        loadFavorites()
-      }
+    onBeforeUnmount(() => {
+      // Clean up event listener
+      window.removeEventListener('storage', handleStorageEvent)
     })
 
     return {

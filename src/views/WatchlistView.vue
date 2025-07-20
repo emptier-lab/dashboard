@@ -91,7 +91,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import MediaCard from '@/components/common/MediaCard.vue'
 import { localStorageService } from '@/services/localStorage'
 import { useRouter } from 'vue-router'
@@ -112,6 +112,7 @@ export default {
 
     function loadWatchlist() {
       watchlist.value = localStorageService.getWatchlist()
+      console.log('Watchlist loaded:', watchlist.value.length)
     }
 
     function removeFromWatchlist(item) {
@@ -162,15 +163,22 @@ export default {
       }
     }
 
+    // Mounting handled in the handleStorageEvent section above
+
+    // Watch for storage events
+    function handleStorageEvent() {
+      loadWatchlist()
+    }
+
     onMounted(() => {
       loadWatchlist()
+      // Add event listener for storage changes (works for both real storage events and our custom dispatched events)
+      window.addEventListener('storage', handleStorageEvent)
     })
 
-    // Refresh watchlist if localStorage might have changed
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'empty-tv-watchlist') {
-        loadWatchlist()
-      }
+    onBeforeUnmount(() => {
+      // Clean up event listener
+      window.removeEventListener('storage', handleStorageEvent)
     })
 
     return {

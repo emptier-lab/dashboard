@@ -93,6 +93,9 @@ export default {
     const itemsPerRow = ref(props.columnCount);
     const isScrolling = ref(false);
     const scrollTimeout = ref(null);
+    const batchSize = ref(10); // Load items in batches of 10
+    const loadedItemCount = ref(0); // Keep track of how many items have been loaded
+    const isInitialLoad = ref(true); // Flag for initial load
 
     // Calculate the approximate number of rows based on item count and columns
     const rowCount = computed(() => Math.ceil(props.items.length / itemsPerRow.value));
@@ -110,6 +113,24 @@ export default {
     const visibleItems = computed(() => {
       if (!props.items.length) return [];
 
+      // On initial load, limit the number of items to prevent lag
+      if (isInitialLoad.value) {
+        const initialItems = props.items.slice(0, batchSize.value);
+
+        // Set a timeout to gradually increase the loaded item count
+        if (loadedItemCount.value < props.items.length) {
+          setTimeout(() => {
+            loadedItemCount.value = Math.min(loadedItemCount.value + batchSize.value, props.items.length);
+            if (loadedItemCount.value >= props.items.length) {
+              isInitialLoad.value = false;
+            }
+          }, 100);
+        }
+
+        return initialItems;
+      }
+
+      // Once initial loading is complete, use normal virtualization
       const { start, end } = visibleRange.value;
       const startIndex = start * itemsPerRow.value;
       const endIndex = Math.min(props.items.length, end * itemsPerRow.value);
@@ -215,15 +236,31 @@ export default {
       updateViewportDimensions();
       setupResizeObserver();
 
-      // Initial load more check
-      setTimeout(() => {
-        if (viewport.value) {
-          const { scrollHeight, clientHeight } = viewport.value;
-          if (scrollHeight <= clientHeight) {
-            emit('load-more');
+      // Start with a small initial set of items
+      loadedItemCount.value = Math.min(batchSize.value, props.items.length);
+
+      // Set up a timer to gradually load more items
+      const gradualLoader = setInterval(() => {
+        if (loadedItemCount.value < props.items.length) {
+          loadedItemCount.value = Math.min(loadedItemCount.value + batchSize.value, props.items.length);
+        } else {
+          clearInterval(gradualLoader);
+          isInitialLoad.value = false;
+
+          // Check if we need to load more from the API
+          if (viewport.value) {
+            const { scrollHeight, clientHeight } = viewport.value;
+            if (scrollHeight <= clientHeight) {
+              emit('load-more');
+            }
           }
         }
-      }, 200);
+      }, 100);
+
+      // Clear the interval when component unmounts
+      onBeforeUnmount(() => {
+        clearInterval(gradualLoader);
+      });
     });
 
     onBeforeUnmount(() => {
@@ -243,7 +280,10 @@ export default {
       bottomSpacerHeight,
       isEmpty,
       getItemKey,
-      handleScroll
+      handleScroll,
+      isInitialLoad,
+      loadedItemCount,
+      batchSize
     };
   }
 };
