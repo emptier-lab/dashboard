@@ -29,7 +29,13 @@ jobs:
           npm install
 
       - name: Build
-        run: npm run build
+        run: npm run build:rocks
+
+      - name: Create directory structure for /tv/
+        run: |
+          mkdir -p deploy/tv
+          cp -r dist/* deploy/tv/
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=/tv/"></head><body>Redirecting to <a href="/tv/">empty.tv</a>...</body></html>' > deploy/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -37,7 +43,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "./dist"
+          path: "./deploy"
 
       - name: Deploy to GitHub Pages
         id: deployment

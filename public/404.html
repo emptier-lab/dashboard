@@ -4,20 +4,25 @@
     <meta charset="utf-8" />
     <title>empty.tv - Redirecting...</title>
     <script>
-      // Simplified redirect for SPA on GitHub Pages
+      // Simplified redirect for SPA on GitHub Pages with /tv/ subdirectory
       var l = window.location;
       var segments = l.pathname.split("/").filter(function (segment) {
         return segment !== "";
       });
 
-      // Redirect to root domain with hash routing
-      if (segments.length > 0) {
-        var newPath = "/" + segments.join("/");
-        window.location.replace(
-          l.protocol + "//" + l.hostname + "/#" + newPath,
-        );
+      // Handle /tv/ subdirectory routing
+      if (segments.length > 0 && segments[0] === "tv") {
+        if (segments.length > 1) {
+          var newPath = "/" + segments.slice(1).join("/");
+          window.location.replace(
+            l.protocol + "//" + l.hostname + "/tv/#" + newPath,
+          );
+        } else {
+          // Just redirect to the tv app
+          window.location.replace(l.protocol + "//" + l.hostname + "/tv/");
+        }
       } else {
-        // Just redirect to the main app
+        // Redirect to main dashboard (will be created later)
         window.location.replace(l.protocol + "//" + l.hostname + "/");
       }
     </script>
