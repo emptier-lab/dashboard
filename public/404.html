@@ -10,15 +10,15 @@
         return segment !== "";
       });
 
-      // Keep the /tv base path and redirect everything else to index
-      if (segments.length > 1 && segments[0] === "tv") {
-        var newPath = "/" + segments.slice(1).join("/");
+      // Redirect to root domain with hash routing
+      if (segments.length > 0) {
+        var newPath = "/" + segments.join("/");
         window.location.replace(
-          l.protocol + "//" + l.hostname + "/tv/#" + newPath,
+          l.protocol + "//" + l.hostname + "/#" + newPath,
         );
       } else {
         // Just redirect to the main app
-        window.location.replace(l.protocol + "//" + l.hostname + "/tv/");
+        window.location.replace(l.protocol + "//" + l.hostname + "/");
       }
     </script>
     <style>
