@@ -144,46 +144,45 @@
       </div>
 
       <div v-if="tvShows.length > 0" class="tv-section">
-        <div class="media-grid media-grid--large">
-          <MediaCard
-            v-for="show in tvShows"
-            :key="show.id"
-            :item="show"
-            media-type="tv"
-            class="tv-card"
-          />
-        </div>
+        <LazyGrid
+          :items="tvShows"
+          :loading="loadingMore"
+          :item-height="cardHeight"
+          :overscan="5"
+          grid-class="media-grid media-grid--large"
+          @load-more="loadMoreShows"
+        >
+          <template #item="{ item }">
+            <MediaCard
+              :item="item"
+              media-type="tv"
+              class="tv-card"
+            />
+          </template>
+
+          <template #loading>
+            <v-progress-circular indeterminate color="primary" size="48" />
+            <p class="loading-text">Loading more TV shows...</p>
+          </template>
+
+          <template #empty>
+            <v-icon icon="mdi-television-off" size="64" color="grey" />
+            <p>No TV shows found</p>
+          </template>
+
+          <template #footer>
+            <!-- End of results indicator -->
+            <div v-if="!hasMoreShows && tvShows.length > 0" class="end-of-results">
+              <v-icon icon="mdi-check-circle" color="success" size="32" />
+              <p>You've reached the end of the results</p>
+            </div>
+          </template>
+        </LazyGrid>
       </div>
 
       <div v-else-if="loading" class="loading-container">
         <v-progress-circular indeterminate color="primary" size="64" />
         <p class="loading-text">Loading TV shows...</p>
-      </div>
-
-      <!-- Load More Button for fallback -->
-      <div v-if="hasMoreShows && !infiniteScrollEnabled" class="load-more-section">
-        <v-btn
-          @click="loadMoreShows"
-          :loading="loadingMore"
-          color="primary"
-          variant="outlined"
-          size="large"
-        >
-          <v-icon icon="mdi-reload" class="mr-2" />
-          Load More TV Shows
-        </v-btn>
-      </div>
-
-      <!-- Infinite scroll loading indicator -->
-      <div v-if="loadingMore && infiniteScrollEnabled" class="infinite-loading">
-        <v-progress-circular indeterminate color="primary" size="48" />
-        <p class="loading-text">Loading more TV shows...</p>
-      </div>
-
-      <!-- End of results indicator -->
-      <div v-if="!hasMoreShows && tvShows.length > 0" class="end-of-results">
-        <v-icon icon="mdi-check-circle" color="success" size="32" />
-        <p>You've reached the end of the results</p>
       </div>
 
       <!-- Error State -->
@@ -203,12 +202,14 @@
 <script>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import MediaCard from '@/components/common/MediaCard.vue'
+import LazyGrid from '@/components/common/LazyGrid.vue'
 import { tmdbService } from '@/services/tmdb'
 
 export default {
   name: 'TVShowsView',
   components: {
-    MediaCard
+    MediaCard,
+    LazyGrid
   },
   setup() {
     const tvShows = ref([])
@@ -220,6 +221,7 @@ export default {
     const totalPages = ref(0)
     const infiniteScrollEnabled = ref(true)
     const scrollThreshold = ref(800) // Increased threshold to detect scroll earlier
+    const cardHeight = ref(450) // Average height of a TV show card in pixels
     const selectedCategory = ref('popular')
     const selectedGenre = ref(null)
     const selectedYear = ref(null)
@@ -573,60 +575,10 @@ export default {
       }
     }
 
-    function handleScroll() {
-      if (!infiniteScrollEnabled.value || loadingMore.value || !hasMoreShows.value) return
-
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-      const windowHeight = window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-
-      const scrollBottom = scrollTop + windowHeight
-      const threshold = documentHeight - (scrollThreshold.value * 2)
-
-      // Check if we're close enough to the bottom to load more
-      if (scrollBottom >= threshold) {
-        console.log('Scroll threshold reached, loading more TV shows')
-        loadMoreShows()
-      }
-    }
-
-    function debounce(func, wait) {
-      let timeout
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout)
-          func(...args)
-        }
-        clearTimeout(timeout)
-        timeout = setTimeout(later, wait)
-      }
-    }
-
-    const debouncedHandleScroll = debounce(handleScroll, 100)
-
+    // LazyGrid handles scrolling automatically, so we don't need these scroll handlers
     onMounted(() => {
       loadGenres()
       loadTVShows()
-
-      // Enable infinite scrolling
-      infiniteScrollEnabled.value = true
-
-      // Add scroll event listener with a small delay to ensure initial content is loaded
-      setTimeout(() => {
-        if (infiniteScrollEnabled.value) {
-          console.log('Infinite scroll enabled, adding scroll listener')
-          window.addEventListener('scroll', debouncedHandleScroll)
-
-          // Force a check in case the initial content doesn't fill the page
-          handleScroll()
-        }
-      }, 1000)
-    })
-
-    onUnmounted(() => {
-      if (infiniteScrollEnabled.value) {
-        window.removeEventListener('scroll', debouncedHandleScroll)
-      }
     })
 
     return {
@@ -655,7 +607,8 @@ export default {
       infiniteScrollEnabled,
       loadTVShows,
       loadMoreShows,
-      toggleKeyword
+      toggleKeyword,
+      cardHeight
     }
   }
 }

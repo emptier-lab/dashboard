@@ -5,17 +5,20 @@
       <router-view />
     </v-main>
 
+    <Notifications class="notifications-component" />
 
   </v-app>
 </template>
 
 <script>
 import AppNavigation from '@/components/layout/AppNavigation.vue'
+import Notifications from '@/components/common/Notifications.vue'
 
 export default {
   name: 'App',
   components: {
-    AppNavigation
+    AppNavigation,
+    Notifications
   },
   mounted() {
     console.log('App mounted - AdBlocker disabled to prevent redirect loops')
@@ -222,12 +225,20 @@ iframe[style*="height: 0"] {
   .mobile-banner {
     display: none !important;
   }
+animation: shimmer 1.5s infinite;
+}
+
+.notifications-component {
+position: fixed;
+top: 70px;
+right: 20px;
+z-index: 1000;
 }
 
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+margin: 0;
+padding: 0;
+box-sizing: border-box;
 }
 
 html, body {

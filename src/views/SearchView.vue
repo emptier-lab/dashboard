@@ -47,16 +47,15 @@
           <span class="results-count">({{ totalResults }} results)</span>
         </h2>
 
-        <v-row>
-          <v-col
-            v-for="item in searchResults"
-            :key="item.id"
-            cols="6"
-            sm="4"
-            md="3"
-            lg="3"
-            xl="2"
-          >
+        <LazyGrid
+          :items="searchResults"
+          :loading="loadingMore"
+          :item-height="cardHeight"
+          :overscan="5"
+          grid-class="media-grid media-grid--large"
+          @load-more="loadMoreResults"
+        >
+          <template #item="{ item }">
             <MediaCard
               v-if="item.media_type !== 'person'"
               :item="item"
@@ -101,33 +100,26 @@
                 </div>
               </v-card-text>
             </v-card>
-          </v-col>
-        </v-row>
+          </template>
 
-        <!-- Load More Button (fallback) -->
-        <div v-if="hasMoreResults && !infiniteScrollEnabled" class="load-more-section">
-          <v-btn
-            @click="loadMoreResults"
-            :loading="loadingMore"
-            color="primary"
-            variant="outlined"
-            size="large"
-          >
-            Load More Results
-          </v-btn>
-        </div>
+          <template #loading>
+            <v-progress-circular indeterminate color="primary" size="48" />
+            <p class="loading-text">Loading more results...</p>
+          </template>
 
-        <!-- Infinite scroll loading indicator -->
-        <div v-if="loadingMore && infiniteScrollEnabled" class="infinite-loading">
-          <v-progress-circular indeterminate color="primary" size="48" />
-          <p class="loading-text">Loading more results...</p>
-        </div>
+          <template #empty>
+            <v-icon icon="mdi-magnify-close" size="64" color="grey" />
+            <p>No search results found</p>
+          </template>
 
-        <!-- End of results indicator -->
-        <div v-if="!hasMoreResults && searchResults.length > 0" class="end-of-results">
-          <v-icon icon="mdi-check-circle" color="success" size="32" />
-          <p>You've reached the end of the results</p>
-        </div>
+          <template #footer>
+            <!-- End of results indicator -->
+            <div v-if="!hasMoreResults && searchResults.length > 0" class="end-of-results">
+              <v-icon icon="mdi-check-circle" color="success" size="32" />
+              <p>You've reached the end of the results</p>
+            </div>
+          </template>
+        </LazyGrid>
       </div>
 
       <!-- No Results -->
@@ -168,15 +160,17 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MediaCard from '@/components/common/MediaCard.vue'
+import LazyGrid from '@/components/common/LazyGrid.vue'
 import { tmdbService, imageService } from '@/services/tmdb'
 
 export default {
   name: 'SearchView',
   components: {
-    MediaCard
+    MediaCard,
+    LazyGrid
   },
   setup() {
     const route = useRoute()
@@ -195,6 +189,7 @@ export default {
     const totalResults = ref(0)
     const infiniteScrollEnabled = ref(true)
     const scrollThreshold = ref(800)
+    const cardHeight = ref(450) // Average height of a search result card in pixels
 
     const hasMoreResults = computed(() => {
       return currentPage.value < totalPages.value
@@ -283,36 +278,7 @@ export default {
       }
     }
 
-    function handleScroll() {
-      if (!infiniteScrollEnabled.value || loadingMore.value || !hasMoreResults.value || !searched.value) return
-
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-      const windowHeight = window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-
-      const scrollBottom = scrollTop + windowHeight
-      const threshold = documentHeight - (scrollThreshold.value * 2)
-
-      // Check if we're close enough to the bottom to load more
-      if (scrollBottom >= threshold) {
-        console.log('Scroll threshold reached, loading more search results')
-        loadMoreResults()
-      }
-    }
-
-    function debounce(func, wait) {
-      let timeout
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout)
-          func(...args)
-        }
-        clearTimeout(timeout)
-        timeout = setTimeout(later, wait)
-      }
-    }
-
-    const debouncedHandleScroll = debounce(handleScroll, 100)
+    // LazyGrid handles scrolling automatically, so we don't need these scroll handlers
 
     function clearSearch() {
       searchQuery.value = ''
@@ -376,46 +342,28 @@ export default {
 
       // Enable infinite scrolling
       infiniteScrollEnabled.value = true
-
-      // Add scroll event listener with a small delay to ensure initial content is loaded
-      setTimeout(() => {
-        if (infiniteScrollEnabled.value) {
-          console.log('Search infinite scroll enabled, adding scroll listener')
-          window.addEventListener('scroll', debouncedHandleScroll)
-
-          // Force a check in case the initial content doesn't fill the page
-          if (searched.value) {
-            handleScroll()
-          }
-        }
-      }, 1000)
-    })
-
-    onUnmounted(() => {
-      if (infiniteScrollEnabled.value) {
-        window.removeEventListener('scroll', debouncedHandleScroll)
-      }
     })
 
     return {
-      searchQuery,
-      searchType,
-      searchResults,
-      popularContent,
-      loading,
-      loadingMore,
-      searched,
-      lastSearchQuery,
-      totalResults,
-      hasMoreResults,
-      infiniteScrollEnabled,
-      performSearch,
-      loadMoreResults,
-      clearSearch,
-      goToPerson,
-      getProfileUrl,
-      onSearchInput
-    }
+    searchQuery,
+    searchType,
+    searchResults,
+    popularContent,
+    loading,
+    loadingMore,
+    searched,
+    lastSearchQuery,
+    totalResults,
+    hasMoreResults,
+    infiniteScrollEnabled,
+    cardHeight,
+    performSearch,
+    loadMoreResults,
+    clearSearch,
+    goToPerson,
+    getProfileUrl,
+    onSearchInput
+  }
   }
 }
 </script>

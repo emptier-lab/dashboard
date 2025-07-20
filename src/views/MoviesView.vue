@@ -144,43 +144,42 @@
         </div>
       </div>
 
-      <!-- Movies Grid -->
+      <!-- Movies Grid with LazyGrid for virtualization -->
       <div v-if="movies.length > 0" class="movies-section">
-        <div class="media-grid media-grid--large">
-          <MediaCard
-            v-for="movie in movies"
-            :key="movie.id"
-            :item="movie"
-            media-type="movie"
-            class="movie-card"
-          />
-        </div>
+        <LazyGrid
+          :items="movies"
+          :loading="loadingMore"
+          :item-height="cardHeight"
+          :overscan="5"
+          grid-class="media-grid media-grid--large"
+          @load-more="loadMoreMovies"
+        >
+          <template #item="{ item }">
+            <MediaCard
+              :item="item"
+              media-type="movie"
+              class="movie-card"
+            />
+          </template>
 
-        <!-- Load More Button for fallback -->
-        <div v-if="hasMoreMovies && !infiniteScrollEnabled" class="load-more-section">
-          <v-btn
-            @click="loadMoreMovies"
-            :loading="loadingMore"
-            class="btn-primary"
-            variant="flat"
-            size="large"
-          >
-            <v-icon icon="mdi-reload" class="mr-2" />
-            Load More Movies
-          </v-btn>
-        </div>
+          <template #loading>
+            <v-progress-circular indeterminate color="primary" size="48" />
+            <p class="loading-text">Loading more movies...</p>
+          </template>
 
-        <!-- Infinite scroll loading indicator -->
-        <div v-if="loadingMore && infiniteScrollEnabled" class="infinite-loading">
-          <v-progress-circular indeterminate color="primary" size="48" />
-          <p class="loading-text">Loading more movies...</p>
-        </div>
+          <template #empty>
+            <v-icon icon="mdi-movie-off" size="64" color="grey" />
+            <p>No movies found</p>
+          </template>
 
-        <!-- End of results indicator -->
-        <div v-if="!hasMoreMovies && movies.length > 0" class="end-of-results">
-          <v-icon icon="mdi-check-circle" color="success" size="32" />
-          <p>You've reached the end of the results</p>
-        </div>
+          <template #footer>
+            <!-- End of results indicator -->
+            <div v-if="!hasMoreMovies && movies.length > 0" class="end-of-results">
+              <v-icon icon="mdi-check-circle" color="success" size="32" />
+              <p>You've reached the end of the results</p>
+            </div>
+          </template>
+        </LazyGrid>
       </div>
 
       <!-- Loading State -->
@@ -206,12 +205,14 @@
 <script>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import MediaCard from '@/components/common/MediaCard.vue'
+import LazyGrid from '@/components/common/LazyGrid.vue'
 import { tmdbService } from '@/services/tmdb'
 
 export default {
   name: 'MoviesView',
   components: {
-    MediaCard
+    MediaCard,
+    LazyGrid
   },
   setup() {
     const movies = ref([])
@@ -223,6 +224,7 @@ export default {
     const totalPages = ref(0)
     const infiniteScrollEnabled = ref(true)
     const scrollThreshold = ref(800) // Increased threshold to detect scroll earlier
+    const cardHeight = ref(450) // Average height of a movie card in pixels
 
     const selectedCategory = ref('popular')
     const selectedGenre = ref(null)
@@ -745,61 +747,11 @@ export default {
       console.log('Networks loaded')
     }
 
-    function handleScroll() {
-      if (!infiniteScrollEnabled.value || loadingMore.value || !hasMoreMovies.value) return
-
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-      const windowHeight = window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-
-      const scrollBottom = scrollTop + windowHeight
-      const threshold = documentHeight - (scrollThreshold.value * 2)
-
-      // Check if we're close enough to the bottom to load more
-      if (scrollBottom >= threshold) {
-        console.log('Scroll threshold reached, loading more movies')
-        loadMoreMovies()
-      }
-    }
-
-    function debounce(func, wait) {
-      let timeout
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout)
-          func(...args)
-        }
-        clearTimeout(timeout)
-        timeout = setTimeout(later, wait)
-      }
-    }
-
-    const debouncedHandleScroll = debounce(handleScroll, 100)
-
+    // LazyGrid handles scrolling automatically, so we don't need these scroll handlers
     onMounted(() => {
       loadGenres()
       loadNetworks()
       loadMovies()
-
-      // Enable infinite scrolling
-      infiniteScrollEnabled.value = true
-
-      // Add scroll event listener with a small delay to ensure initial content is loaded
-      setTimeout(() => {
-        if (infiniteScrollEnabled.value) {
-          console.log('Infinite scroll enabled, adding scroll listener')
-          window.addEventListener('scroll', debouncedHandleScroll)
-
-          // Force a check in case the initial content doesn't fill the page
-          handleScroll()
-        }
-      }, 1000)
-    })
-
-    onUnmounted(() => {
-      if (infiniteScrollEnabled.value) {
-        window.removeEventListener('scroll', debouncedHandleScroll)
-      }
     })
 
     return {
@@ -826,7 +778,8 @@ export default {
       infiniteScrollEnabled,
       loadMovies,
       loadMoreMovies,
-      toggleKeyword
+      toggleKeyword,
+      cardHeight
     }
   }
 }
