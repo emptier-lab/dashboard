@@ -165,106 +165,30 @@
       </div>
     </div>
 
-    <!-- GitHub Pages SPA routing script -->
+    <!-- Simplified SPA routing script -->
     <script>
-      // Cross-browser compatible redirect system with HTTPS support
+      // Simple SPA routing without redirect loops
       (function (l) {
         var protocol = l.protocol;
         var hostname = l.hostname;
         var path = l.pathname;
         var search = l.search;
-        var hash = l.hash;
 
-        // Force HTTPS on production domain
+        // Force HTTPS on production domain only if HTTP
         if (hostname === "empty.rocks" && protocol === "http:") {
-          window.location.replace("https://" + hostname + path + search + hash);
+          window.location.replace(
+            "https://" + hostname + path + search + (l.hash || ""),
+          );
           return;
         }
 
-        // Multi-method redirect function for cross-browser compatibility
-        function safeRedirect(targetUrl) {
-          console.log("Main index.html redirecting to:", targetUrl);
-
-          // Ensure HTTPS for production redirects
-          if (hostname === "empty.rocks" && !targetUrl.startsWith("https://")) {
-            if (targetUrl.startsWith("/")) {
-              targetUrl = "https://" + hostname + targetUrl;
-            }
-          }
-
-          // Try multiple redirect methods for maximum browser compatibility
-          try {
-            // Method 1: location.replace (doesn't create history entry)
-            window.location.replace(targetUrl);
-          } catch (e1) {
-            try {
-              // Method 2: location.href
-              window.location.href = targetUrl;
-            } catch (e2) {
-              try {
-                // Method 3: location.assign
-                window.location.assign(targetUrl);
-              } catch (e3) {
-                // Method 4: Direct assignment with timeout
-                setTimeout(function () {
-                  window.location = targetUrl;
-                }, 10);
-              }
-            }
-          }
-        }
-
-        // Skip redirect if already at root path or valid Vue routes
-        if (
-          path === "/" ||
-          path === "" ||
-          path === "/movies" ||
-          path === "/tv-shows" ||
-          path === "/search" ||
-          path === "/trending" ||
-          path === "/favorites" ||
-          path === "/watchlist" ||
-          path.startsWith("/movie/") ||
-          path.startsWith("/tv/") ||
-          path.startsWith("/watch/") ||
-          path.startsWith("/person/")
-        ) {
-          return;
-        }
-
-        // Handle empty.tv redirect requests
-        if (path.indexOf("empty.tv") !== -1) {
-          // Handle /empty.tv/tv/ nested path - extract any sub-path
-          if (path.indexOf("/empty.tv/tv/") !== -1) {
-            var cleanPath = path.replace("/empty.tv/tv/", "/");
-            safeRedirect("/" + cleanPath + search + hash);
-            return;
-          }
-
-          // Handle /empty.tv/ base path
-          if (path === "/empty.tv" || path === "/empty.tv/") {
-            safeRedirect("/" + search + hash);
-            return;
-          }
-
-          // Handle other /empty.tv/* paths
-          var newPath = path.replace(/^\/empty\.tv/, "");
-          if (newPath === "" || newPath === "/") {
-            safeRedirect("/" + search + hash);
-          } else {
-            safeRedirect(newPath + search + hash);
-          }
-          return;
-        }
-
-        // Original SPA routing for query parameters
-        if (l.search && l.search.startsWith("?/")) {
-          var searchPath = l.search.slice(2);
+        // Handle query parameter routing for SPA
+        if (search && search.startsWith("?/")) {
+          var searchPath = search.slice(2);
           try {
             window.history.replaceState(null, null, "/#/" + searchPath);
           } catch (e) {
-            // Fallback if history API fails
-            safeRedirect("/#/" + searchPath);
+            console.log("History API not available");
           }
         }
       })(window.location);

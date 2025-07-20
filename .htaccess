@@ -13,23 +13,10 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 RewriteCond %{HTTP_HOST} ^www\.empty\.rocks$ [NC]
 RewriteRule ^(.*)$ https://empty.rocks/$1 [R=301,L]
 
-# Redirect root domain to /tv/
-RewriteCond %{HTTP_HOST} ^empty\.rocks$ [NC]
-RewriteRule ^$ /tv/ [R=301,L]
-
-# Handle empty.tv path redirects
-RewriteCond %{HTTP_HOST} ^empty\.rocks$ [NC]
-RewriteRule ^empty\.tv/tv/(.*)$ /tv/$1 [R=301,L]
-RewriteCond %{HTTP_HOST} ^empty\.rocks$ [NC]
-RewriteRule ^empty\.tv/(.*)$ /tv/$1 [R=301,L]
-RewriteCond %{HTTP_HOST} ^empty\.rocks$ [NC]
-RewriteRule ^empty\.tv/?$ /tv/ [R=301,L]
-
-# Vue.js SPA routing - serve index.html for all /tv/ routes
+# Vue.js SPA routing - serve index.html for all routes that don't exist
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} ^/tv/
-RewriteRule ^tv/.*$ /tv/index.html [L]
+RewriteRule ^.*$ /index.html [L]
 
 # Security headers
 <IfModule mod_headers.c>
@@ -120,4 +107,4 @@ RewriteRule ^tv/.*$ /tv/index.html [L]
 </Files>
 
 # Error pages (optional)
-ErrorDocument 404 /tv/index.html
+ErrorDocument 404 /index.html
