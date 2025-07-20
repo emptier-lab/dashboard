@@ -147,8 +147,7 @@
         <LazyGrid
           :items="tvShows"
           :loading="loadingMore"
-          :item-height="cardHeight"
-          :overscan="5"
+          :has-more-content="hasMoreTVShows"
           grid-class="media-grid media-grid--large"
           @load-more="loadMoreShows"
         >
@@ -172,7 +171,7 @@
 
           <template #footer>
             <!-- End of results indicator -->
-            <div v-if="!hasMoreShows && tvShows.length > 0" class="end-of-results">
+            <div v-if="!hasMoreTVShows && tvShows.length > 0" class="end-of-results">
               <v-icon icon="mdi-check-circle" color="success" size="32" />
               <p>You've reached the end of the results</p>
             </div>
@@ -221,7 +220,8 @@ export default {
     const totalPages = ref(0)
     const infiniteScrollEnabled = ref(true)
     const scrollThreshold = ref(800) // Increased threshold to detect scroll earlier
-    const cardHeight = ref(450) // Average height of a TV show card in pixels
+    const lastLoadTime = ref(0)
+    const minLoadInterval = 1000 // Minimum 1 second between loads
     const selectedCategory = ref('popular')
     const selectedGenre = ref(null)
     const selectedYear = ref(null)
@@ -308,7 +308,7 @@ export default {
       return yearList
     })
 
-    const hasMoreShows = computed(() => {
+    const hasMoreTVShows = computed(() => {
       return currentPage.value < totalPages.value
     })
 
@@ -465,7 +465,15 @@ export default {
     }
 
     async function loadMoreShows() {
-      if (!hasMoreShows.value || loadingMore.value) return
+      if (!hasMoreTVShows.value || loadingMore.value) return
+
+      // Prevent rapid successive calls
+      const now = Date.now()
+      if (now - lastLoadTime.value < minLoadInterval) {
+        console.log('Load more throttled - too soon since last load')
+        return
+      }
+      lastLoadTime.value = now
 
       console.log('Loading more TV shows, page:', currentPage.value + 1)
       loadingMore.value = true
@@ -520,13 +528,7 @@ export default {
         loadingMore.value = false
         console.log('Finished loading more TV shows, now showing:', tvShows.value.length)
 
-        // Check if we need to load more content if the page isn't filled
-        setTimeout(() => {
-          if (document.documentElement.scrollHeight <= window.innerHeight && hasMoreShows.value) {
-            console.log('Page not filled, loading additional content')
-            loadMoreShows()
-          }
-        }, 300)
+        // Let LazyGrid's Intersection Observer handle load more detection
       }
     }
 
@@ -603,12 +605,11 @@ export default {
       audienceTypes,
       themeTypes,
       keywordOptions,
-      hasMoreShows,
+      hasMoreTVShows,
       infiniteScrollEnabled,
       loadTVShows,
       loadMoreShows,
-      toggleKeyword,
-      cardHeight
+      toggleKeyword
     }
   }
 }

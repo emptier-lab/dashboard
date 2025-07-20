@@ -149,8 +149,7 @@
         <LazyGrid
           :items="movies"
           :loading="loadingMore"
-          :item-height="cardHeight"
-          :overscan="5"
+          :has-more-content="hasMoreMovies"
           grid-class="media-grid media-grid--large"
           @load-more="loadMoreMovies"
         >
@@ -224,7 +223,9 @@ export default {
     const totalPages = ref(0)
     const infiniteScrollEnabled = ref(true)
     const scrollThreshold = ref(800) // Increased threshold to detect scroll earlier
-    const cardHeight = ref(450) // Average height of a movie card in pixels
+    const lastLoadTime = ref(0)
+    const minLoadInterval = 1000 // Minimum 1 second between loads
+
 
     const selectedCategory = ref('popular')
     const selectedGenre = ref(null)
@@ -536,6 +537,14 @@ export default {
     async function loadMoreMovies() {
       if (!hasMoreMovies.value || loadingMore.value) return
 
+      // Prevent rapid successive calls
+      const now = Date.now()
+      if (now - lastLoadTime.value < minLoadInterval) {
+        console.log('Load more throttled - too soon since last load')
+        return
+      }
+      lastLoadTime.value = now
+
       console.log('Loading more movies, page:', currentPage.value + 1)
       loadingMore.value = true
       currentPage.value += 1
@@ -696,13 +705,7 @@ export default {
         loadingMore.value = false
         console.log('Finished loading more movies, now showing:', movies.value.length)
 
-        // Check if we need to load more content if the page isn't filled
-        setTimeout(() => {
-          if (document.documentElement.scrollHeight <= window.innerHeight && hasMoreMovies.value) {
-            console.log('Page not filled, loading additional content')
-            loadMoreMovies()
-          }
-        }, 300)
+        // Let LazyGrid's Intersection Observer handle load more detection
       }
     }
 
@@ -778,8 +781,7 @@ export default {
       infiniteScrollEnabled,
       loadMovies,
       loadMoreMovies,
-      toggleKeyword,
-      cardHeight
+      toggleKeyword
     }
   }
 }

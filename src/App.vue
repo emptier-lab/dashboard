@@ -5,20 +5,21 @@
       <router-view />
     </v-main>
 
-    <Notifications class="notifications-component" />
+    <SideNotifications />
+
 
   </v-app>
 </template>
 
 <script>
 import AppNavigation from '@/components/layout/AppNavigation.vue'
-import Notifications from '@/components/common/Notifications.vue'
+import SideNotifications from '@/components/common/SideNotifications.vue'
 
 export default {
   name: 'App',
   components: {
     AppNavigation,
-    Notifications
+    SideNotifications
   },
   mounted() {
     console.log('App mounted - AdBlocker disabled to prevent redirect loops')
@@ -228,12 +229,7 @@ iframe[style*="height: 0"] {
 animation: shimmer 1.5s infinite;
 }
 
-.notifications-component {
-position: fixed;
-top: 70px;
-right: 20px;
-z-index: 1000;
-}
+
 
 * {
 margin: 0;

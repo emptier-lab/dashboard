@@ -50,8 +50,7 @@
         <LazyGrid
           :items="searchResults"
           :loading="loadingMore"
-          :item-height="cardHeight"
-          :overscan="5"
+          :has-more-content="hasMoreResults"
           grid-class="media-grid media-grid--large"
           @load-more="loadMoreResults"
         >
@@ -189,7 +188,8 @@ export default {
     const totalResults = ref(0)
     const infiniteScrollEnabled = ref(true)
     const scrollThreshold = ref(800)
-    const cardHeight = ref(450) // Average height of a search result card in pixels
+    const lastLoadTime = ref(0)
+    const minLoadInterval = 1000 // Minimum 1 second between loads
 
     const hasMoreResults = computed(() => {
       return currentPage.value < totalPages.value
@@ -241,6 +241,14 @@ export default {
     async function loadMoreResults() {
       if (!hasMoreResults.value || loadingMore.value) return
 
+      // Prevent rapid successive calls
+      const now = Date.now()
+      if (now - lastLoadTime.value < minLoadInterval) {
+        console.log('Load more throttled - too soon since last load')
+        return
+      }
+      lastLoadTime.value = now
+
       console.log('Loading more search results, page:', currentPage.value + 1)
       loadingMore.value = true
       currentPage.value += 1
@@ -268,13 +276,7 @@ export default {
         loadingMore.value = false
         console.log('Finished loading more search results, now showing:', searchResults.value.length)
 
-        // Check if we need to load more content if the page isn't filled
-        setTimeout(() => {
-          if (document.documentElement.scrollHeight <= window.innerHeight && hasMoreResults.value) {
-            console.log('Page not filled, loading additional search results')
-            loadMoreResults()
-          }
-        }, 300)
+        // Let LazyGrid's Intersection Observer handle load more detection
       }
     }
 
@@ -356,7 +358,6 @@ export default {
     totalResults,
     hasMoreResults,
     infiniteScrollEnabled,
-    cardHeight,
     performSearch,
     loadMoreResults,
     clearSearch,

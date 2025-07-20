@@ -5,21 +5,18 @@
 
     <!-- Viewport for visible items only -->
     <div class="lazy-grid-viewport" ref="viewport" @scroll="handleScroll">
-      <!-- Spacer at top to maintain scroll position -->
-      <div class="lazy-grid-spacer" :style="{ height: `${topSpacerHeight}px` }"></div>
-
       <!-- Actual visible items -->
       <div class="lazy-grid" :class="gridClass" ref="grid">
         <slot
-          v-for="item in visibleItems"
+          v-for="item in items"
           :key="getItemKey(item)"
           :item="item"
           name="item"
         ></slot>
       </div>
 
-      <!-- Spacer at bottom to maintain scroll height -->
-      <div class="lazy-grid-spacer" :style="{ height: `${bottomSpacerHeight}px` }"></div>
+      <!-- Load more trigger when near bottom -->
+      <div v-if="hasMoreContent && !loading" class="load-more-trigger" ref="loadMoreTrigger"></div>
     </div>
 
     <!-- Loading indicator -->
@@ -44,8 +41,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
-import { useThrottleFn } from '@vueuse/core';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 
 export default {
   name: 'LazyGrid',
@@ -62,92 +58,27 @@ export default {
       type: String,
       default: 'media-grid'
     },
-    itemHeight: {
-      type: Number,
-      default: 400 // Default item height in pixels
-    },
     itemKey: {
       type: String,
       default: 'id'
     },
-    overscan: {
-      type: Number,
-      default: 5 // Number of items to render above/below visible area
-    },
-    columnCount: {
-      type: Number,
-      default: 5 // Approximate number of columns
-    },
     loadMoreThreshold: {
       type: Number,
-      default: 500 // px from bottom to trigger load more
+      default: 500
+    },
+    hasMoreContent: {
+      type: Boolean,
+      default: true
     }
   },
-  emits: ['load-more', 'visible-items-change'],
+  emits: ['load-more'],
   setup(props, { emit }) {
     const container = ref(null);
     const viewport = ref(null);
-    const grid = ref(null);
-    const scrollTop = ref(0);
-    const viewportHeight = ref(0);
-    const itemsPerRow = ref(props.columnCount);
+    const loadMoreTrigger = ref(null);
     const isScrolling = ref(false);
     const scrollTimeout = ref(null);
-    const batchSize = ref(10); // Load items in batches of 10
-    const loadedItemCount = ref(0); // Keep track of how many items have been loaded
-    const isInitialLoad = ref(true); // Flag for initial load
-
-    // Calculate the approximate number of rows based on item count and columns
-    const rowCount = computed(() => Math.ceil(props.items.length / itemsPerRow.value));
-
-    // Calculate which items should be visible
-    const visibleRange = computed(() => {
-      const start = Math.max(0, Math.floor(scrollTop.value / props.itemHeight) - props.overscan);
-      const visibleRows = Math.ceil(viewportHeight.value / props.itemHeight) + props.overscan * 2;
-      const end = Math.min(rowCount.value, start + visibleRows);
-
-      return { start, end };
-    });
-
-    // Calculate the items that should be currently rendered
-    const visibleItems = computed(() => {
-      if (!props.items.length) return [];
-
-      // On initial load, limit the number of items to prevent lag
-      if (isInitialLoad.value) {
-        const initialItems = props.items.slice(0, batchSize.value);
-
-        // Set a timeout to gradually increase the loaded item count
-        if (loadedItemCount.value < props.items.length) {
-          setTimeout(() => {
-            loadedItemCount.value = Math.min(loadedItemCount.value + batchSize.value, props.items.length);
-            if (loadedItemCount.value >= props.items.length) {
-              isInitialLoad.value = false;
-            }
-          }, 100);
-        }
-
-        return initialItems;
-      }
-
-      // Once initial loading is complete, use normal virtualization
-      const { start, end } = visibleRange.value;
-      const startIndex = start * itemsPerRow.value;
-      const endIndex = Math.min(props.items.length, end * itemsPerRow.value);
-
-      return props.items.slice(startIndex, endIndex);
-    });
-
-    // Calculate spacer heights
-    const topSpacerHeight = computed(() => {
-      return visibleRange.value.start * props.itemHeight;
-    });
-
-    const bottomSpacerHeight = computed(() => {
-      const visibleRows = visibleRange.value.end - visibleRange.value.start;
-      const remainingRows = rowCount.value - visibleRange.value.end;
-      return remainingRows * props.itemHeight;
-    });
+    const intersectionObserver = ref(null);
 
     // Check if items array is empty
     const isEmpty = computed(() => {
@@ -159,31 +90,9 @@ export default {
       return item[props.itemKey] || JSON.stringify(item);
     };
 
-    // Update viewport dimensions
-    const updateViewportDimensions = () => {
+    // Handle scroll events for manual scroll detection
+    const handleScroll = () => {
       if (!viewport.value) return;
-
-      viewportHeight.value = viewport.value.clientHeight;
-      scrollTop.value = viewport.value.scrollTop;
-
-      // Calculate actual number of columns if grid is rendered
-      if (grid.value && grid.value.children.length > 0) {
-        const firstItem = grid.value.children[0];
-        const itemWidth = firstItem.offsetWidth;
-        const gridWidth = grid.value.offsetWidth;
-
-        if (itemWidth && gridWidth) {
-          itemsPerRow.value = Math.floor(gridWidth / itemWidth);
-          if (itemsPerRow.value < 1) itemsPerRow.value = 1;
-        }
-      }
-    };
-
-    // Handle scroll events with throttling
-    const handleScroll = useThrottleFn(() => {
-      if (!viewport.value) return;
-
-      scrollTop.value = viewport.value.scrollTop;
 
       // Clear previous timeout
       if (scrollTimeout.value) {
@@ -198,73 +107,101 @@ export default {
         isScrolling.value = false;
       }, 150);
 
-      // Check if we need to load more items
-      const { scrollHeight, clientHeight, scrollTop } = viewport.value;
-      if (scrollHeight - clientHeight - scrollTop <= props.loadMoreThreshold) {
+      // Manual check for load more (backup method)
+      const { scrollTop, clientHeight, scrollHeight } = viewport.value;
+      const distanceFromBottom = scrollHeight - clientHeight - scrollTop;
+
+      if (distanceFromBottom <= props.loadMoreThreshold && props.hasMoreContent && !props.loading) {
         emit('load-more');
       }
-    }, 100);
-
-    // Watch for changes in visible items
-    watch(visibleItems, (newItems) => {
-      emit('visible-items-change', newItems);
-    });
-
-    // Setup resize observer
-    let resizeObserver = null;
-
-    const setupResizeObserver = () => {
-      if (!container.value) return;
-
-      resizeObserver = new ResizeObserver(() => {
-        updateViewportDimensions();
-      });
-
-      resizeObserver.observe(container.value);
     };
 
-    // Clean up resize observer
-    const cleanupResizeObserver = () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
+    // Setup intersection observer for load more trigger
+    const setupIntersectionObserver = () => {
+      if (!window.IntersectionObserver || !loadMoreTrigger.value) return;
+
+      const options = {
+        root: viewport.value,
+        rootMargin: `${props.loadMoreThreshold}px`,
+        threshold: 0.1
+      };
+
+      intersectionObserver.value = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && props.hasMoreContent && !props.loading) {
+            console.log('Intersection Observer triggered load-more');
+            emit('load-more');
+          }
+        });
+      }, options);
+
+      intersectionObserver.value.observe(loadMoreTrigger.value);
+    };
+
+    // Clean up intersection observer
+    const cleanupIntersectionObserver = () => {
+      if (intersectionObserver.value) {
+        intersectionObserver.value.disconnect();
+        intersectionObserver.value = null;
       }
     };
+
+    // Watch for changes in hasMoreContent to set up/clean up observer
+    watch(() => props.hasMoreContent, (hasMore) => {
+      if (hasMore) {
+        nextTick(() => {
+          if (loadMoreTrigger.value) {
+            setupIntersectionObserver();
+          }
+        });
+      } else {
+        cleanupIntersectionObserver();
+      }
+    });
+
+    // Watch for items changes to check if we need more content
+    watch(() => props.items.length, () => {
+      nextTick(() => {
+        if (viewport.value && props.hasMoreContent && !props.loading) {
+          const { scrollHeight, clientHeight } = viewport.value;
+
+          // If the content doesn't fill the viewport, load more (but only once)
+          if (scrollHeight <= clientHeight + 100) {
+            setTimeout(() => {
+              if (viewport.value && props.hasMoreContent && !props.loading) {
+                const { scrollHeight: newScrollHeight, clientHeight: newClientHeight } = viewport.value;
+                if (newScrollHeight <= newClientHeight + 100) {
+                  emit('load-more');
+                }
+              }
+            }, 500);
+          }
+        }
+      });
+    });
 
     // Lifecycle hooks
     onMounted(() => {
-      updateViewportDimensions();
-      setupResizeObserver();
+      nextTick(() => {
+        if (loadMoreTrigger.value && props.hasMoreContent) {
+          setupIntersectionObserver();
+        }
 
-      // Start with a small initial set of items
-      loadedItemCount.value = Math.min(batchSize.value, props.items.length);
-
-      // Set up a timer to gradually load more items
-      const gradualLoader = setInterval(() => {
-        if (loadedItemCount.value < props.items.length) {
-          loadedItemCount.value = Math.min(loadedItemCount.value + batchSize.value, props.items.length);
-        } else {
-          clearInterval(gradualLoader);
-          isInitialLoad.value = false;
-
-          // Check if we need to load more from the API
-          if (viewport.value) {
+        // Initial check if we need to load more content (with delay to ensure DOM is ready)
+        setTimeout(() => {
+          if (viewport.value && props.hasMoreContent && !props.loading) {
             const { scrollHeight, clientHeight } = viewport.value;
-            if (scrollHeight <= clientHeight) {
+
+            if (scrollHeight <= clientHeight + 100) {
               emit('load-more');
             }
           }
-        }
-      }, 100);
-
-      // Clear the interval when component unmounts
-      onBeforeUnmount(() => {
-        clearInterval(gradualLoader);
+        }, 200);
       });
     });
 
     onBeforeUnmount(() => {
-      cleanupResizeObserver();
+      cleanupIntersectionObserver();
 
       if (scrollTimeout.value) {
         clearTimeout(scrollTimeout.value);
@@ -274,16 +211,11 @@ export default {
     return {
       container,
       viewport,
-      grid,
-      visibleItems,
-      topSpacerHeight,
-      bottomSpacerHeight,
+      loadMoreTrigger,
       isEmpty,
       getItemKey,
       handleScroll,
-      isInitialLoad,
-      loadedItemCount,
-      batchSize
+      isScrolling
     };
   }
 };
@@ -305,7 +237,7 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .lazy-grid {
@@ -313,8 +245,10 @@ export default {
   width: 100%;
 }
 
-.lazy-grid-spacer {
+.load-more-trigger {
   width: 100%;
+  height: 1px;
+  pointer-events: none;
 }
 
 .lazy-grid-loading {
