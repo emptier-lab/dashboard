@@ -23,16 +23,7 @@
       ]
     },
     {
-      "source": "/tv/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
-      ]
-    },
-    {
-      "source": "/tv/assets/(.*)",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -43,10 +34,6 @@
   ],
   "rewrites": [
     {
-      "source": "/tv/:path*",
-      "destination": "/tv/dist/:path*"
-    },
-    {
       "source": "/pickleclicker",
       "destination": "/Pickle click/index.html"
     },
@@ -55,20 +42,8 @@
       "destination": "/Pickle click/:path*"
     },
     {
-      "source": "/((?!tv|pickleclicker).*)",
+      "source": "/((?!pickleclicker).*)",
       "destination": "/tv/dist/index.html"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/empty.tv/tv/:path*",
-      "destination": "/tv/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/empty.tv",
-      "destination": "/tv/",
-      "permanent": true
     }
   ]
 }
