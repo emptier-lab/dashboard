@@ -1,90 +1,27 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dist/**/*",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "headers": {
-        "X-Frame-Options": "SAMEORIGIN",
-        "X-Content-Type-Options": "nosniff",
-        "X-XSS-Protection": "1; mode=block",
-        "Referrer-Policy": "strict-origin-when-cross-origin"
-      }
-    },
-    {
-      "src": "/empty.tv/tv/(.*)",
-      "status": 301,
-      "headers": {
-        "Location": "/tv/$1"
-      }
-    },
-    {
-      "src": "/empty.tv/(.*)",
-      "status": 301,
-      "headers": {
-        "Location": "/tv/$1"
-      }
-    },
-    {
-      "src": "/empty.tv",
-      "status": 301,
-      "headers": {
-        "Location": "/tv/"
-      }
-    },
-    {
-      "src": "^/$",
-      "status": 301,
-      "headers": {
-        "Location": "/tv/"
-      }
-    },
-    {
-      "src": "/tv/(.*)",
-      "dest": "/tv/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "status": 301,
-      "headers": {
-        "Location": "/tv/"
-      }
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/empty.tv/tv/:path*",
-      "destination": "/tv/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/empty.tv/:path*",
-      "destination": "/tv/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/empty.tv",
-      "destination": "/tv/",
-      "permanent": true
-    },
-    {
-      "source": "/",
-      "destination": "/tv/",
-      "permanent": true
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/tv/:path*",
-      "destination": "/tv/index.html"
-    }
-  ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
     {
       "source": "/tv/(.*)",
       "headers": [
@@ -102,6 +39,36 @@
           "value": "public, max-age=31536000, immutable"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/tv/:path*",
+      "destination": "/tv/dist/:path*"
+    },
+    {
+      "source": "/pickleclicker",
+      "destination": "/Pickle click/index.html"
+    },
+    {
+      "source": "/pickleclicker/:path*",
+      "destination": "/Pickle click/:path*"
+    },
+    {
+      "source": "/((?!tv|pickleclicker).*)",
+      "destination": "/tv/dist/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/empty.tv/tv/:path*",
+      "destination": "/tv/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/empty.tv",
+      "destination": "/tv/",
+      "permanent": true
     }
   ]
 }

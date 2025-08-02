@@ -5,17 +5,7 @@
 export class VideoEmbedService {
   constructor() {
     this.embedSources = [
-      {
-        name: "AutoEmbed",
-        baseUrl: "https://player.autoembed.cc/embed",
-        movieUrl: (tmdbId) =>
-          `https://player.autoembed.cc/embed/movie/${tmdbId}`,
-        tvUrl: (tmdbId, season, episode) =>
-          `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`,
-        priority: 10,
-        active: false,
-        mobileCompatible: true,
-      },
+
       {
         name: "VidSrc",
         baseUrl: "https://vidsrc.to/embed",
@@ -376,7 +366,6 @@ export const embedUtils = {
 
   isTrustedSource(url) {
     const trustedDomains = [
-      "player.autoembed.cc",
       "embed.su",
       "vidsrc.to",
       "vidsrc.pro",
