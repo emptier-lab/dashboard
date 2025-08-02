@@ -12,7 +12,27 @@ export class VideoEmbedService {
           `https://player.autoembed.cc/embed/movie/${tmdbId}`,
         tvUrl: (tmdbId, season, episode) =>
           `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`,
+        priority: 10,
+        active: false,
+        mobileCompatible: true,
+      },
+      {
+        name: "VidSrc",
+        baseUrl: "https://vidsrc.to/embed",
+        movieUrl: (tmdbId) => `https://vidsrc.to/embed/movie/${tmdbId}`,
+        tvUrl: (tmdbId, season, episode) =>
+          `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
         priority: 1,
+        active: true,
+        mobileCompatible: true,
+      },
+      {
+        name: "VidSrcPro",
+        baseUrl: "https://vidsrc.pro/embed",
+        movieUrl: (tmdbId) => `https://vidsrc.pro/embed/movie/${tmdbId}`,
+        tvUrl: (tmdbId, season, episode) =>
+          `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`,
+        priority: 2,
         active: true,
         mobileCompatible: true,
       },
@@ -22,41 +42,29 @@ export class VideoEmbedService {
         movieUrl: (tmdbId) => `https://embed.su/embed/movie/${tmdbId}`,
         tvUrl: (tmdbId, season, episode) =>
           `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`,
-        priority: 2,
+        priority: 3,
         active: true,
         mobileCompatible: false,
       },
       {
-        name: "VidSrc",
-        baseUrl: "https://vidsrc.to/embed",
-        movieUrl: (tmdbId) => `https://vidsrc.to/embed/movie/${tmdbId}`,
+        name: "VidSrcDev",
+        baseUrl: "https://vidsrc.dev/embed",
+        movieUrl: (tmdbId) => `https://vidsrc.dev/embed/movie?tmdb=${tmdbId}`,
         tvUrl: (tmdbId, season, episode) =>
-          `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`,
-        priority: 3,
+          `https://vidsrc.dev/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
+        priority: 4,
         active: true,
         mobileCompatible: true,
       },
       {
-        name: "SuperEmbed",
-        baseUrl: "https://multiembed.mov",
-        movieUrl: (tmdbId) =>
-          `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`,
+        name: "VidSrcMe",
+        baseUrl: "https://vidsrc.me/embed",
+        movieUrl: (tmdbId) => `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`,
         tvUrl: (tmdbId, season, episode) =>
-          `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`,
-        priority: 4,
-        active: true,
-        mobileCompatible: false,
-      },
-      {
-        name: "2Embed",
-        baseUrl: "https://www.2embed.org/embed",
-        movieUrl: (tmdbId) =>
-          `https://www.2embed.org/embed/tmdb/movie?id=${tmdbId}`,
-        tvUrl: (tmdbId, season, episode) =>
-          `https://www.2embed.org/embed/tmdb/tv?id=${tmdbId}&s=${season}&e=${episode}`,
+          `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
         priority: 5,
         active: true,
-        mobileCompatible: false,
+        mobileCompatible: true,
       },
       {
         name: "VidLink",
@@ -69,14 +77,26 @@ export class VideoEmbedService {
         mobileCompatible: true,
       },
       {
-        name: "VidSrcDev",
-        baseUrl: "https://vidsrc.dev/embed",
-        movieUrl: (tmdbId) => `https://vidsrc.dev/embed/movie?tmdb=${tmdbId}`,
+        name: "2Embed",
+        baseUrl: "https://www.2embed.org/embed",
+        movieUrl: (tmdbId) =>
+          `https://www.2embed.org/embed/tmdb/movie?id=${tmdbId}`,
         tvUrl: (tmdbId, season, episode) =>
-          `https://vidsrc.dev/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
+          `https://www.2embed.org/embed/tmdb/tv?id=${tmdbId}&s=${season}&e=${episode}`,
         priority: 7,
         active: true,
-        mobileCompatible: true,
+        mobileCompatible: false,
+      },
+      {
+        name: "SuperEmbed",
+        baseUrl: "https://multiembed.mov",
+        movieUrl: (tmdbId) =>
+          `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`,
+        tvUrl: (tmdbId, season, episode) =>
+          `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`,
+        priority: 8,
+        active: true,
+        mobileCompatible: false,
       },
       {
         name: "VidSrcNL",
@@ -84,16 +104,6 @@ export class VideoEmbedService {
         movieUrl: (tmdbId) => `https://player.vidsrc.nl/embed/movie/${tmdbId}`,
         tvUrl: (tmdbId, season, episode) =>
           `https://player.vidsrc.nl/embed/tv/${tmdbId}/${season}/${episode}`,
-        priority: 8,
-        active: true,
-        mobileCompatible: true,
-      },
-      {
-        name: "SmashyStream",
-        baseUrl: "https://player.smashy.stream",
-        movieUrl: (tmdbId) => `https://player.smashy.stream/movie/${tmdbId}`,
-        tvUrl: (tmdbId, season, episode) =>
-          `https://player.smashy.stream/tv/${tmdbId}/${season}/${episode}`,
         priority: 9,
         active: true,
         mobileCompatible: true,
@@ -108,6 +118,46 @@ export class VideoEmbedService {
         priority: 10,
         active: true,
         mobileCompatible: false,
+      },
+      {
+        name: "VidPlay",
+        baseUrl: "https://vidplay.site/e",
+        movieUrl: (tmdbId) => `https://vidplay.site/e/movie/${tmdbId}`,
+        tvUrl: (tmdbId, season, episode) =>
+          `https://vidplay.site/e/tv/${tmdbId}/${season}/${episode}`,
+        priority: 11,
+        active: true,
+        mobileCompatible: true,
+      },
+      {
+        name: "MovieEmbed",
+        baseUrl: "https://moviesapi.club",
+        movieUrl: (tmdbId) => `https://moviesapi.club/movie/${tmdbId}`,
+        tvUrl: (tmdbId, season, episode) =>
+          `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`,
+        priority: 12,
+        active: true,
+        mobileCompatible: true,
+      },
+      {
+        name: "VidStream",
+        baseUrl: "https://vidstream.pro/e",
+        movieUrl: (tmdbId) => `https://vidstream.pro/e/movie/${tmdbId}`,
+        tvUrl: (tmdbId, season, episode) =>
+          `https://vidstream.pro/e/tv/${tmdbId}/${season}/${episode}`,
+        priority: 13,
+        active: true,
+        mobileCompatible: true,
+      },
+      {
+        name: "SmashyStream",
+        baseUrl: "https://embed.smashystream.com",
+        movieUrl: (tmdbId) => `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}`,
+        tvUrl: (tmdbId, season, episode) =>
+          `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}&season=${season}&episode=${episode}`,
+        priority: 14,
+        active: true,
+        mobileCompatible: true,
       },
     ];
   }
@@ -329,13 +379,18 @@ export const embedUtils = {
       "player.autoembed.cc",
       "embed.su",
       "vidsrc.to",
+      "vidsrc.pro",
+      "vidsrc.dev",
+      "vidsrc.me",
       "multiembed.mov",
       "www.2embed.org",
       "vidlink.pro",
-      "vidsrc.dev",
       "player.vidsrc.nl",
-      "player.smashy.stream",
       "embedflix.today",
+      "vidplay.site",
+      "moviesapi.club",
+      "vidstream.pro",
+      "embed.smashystream.com",
     ];
 
     try {

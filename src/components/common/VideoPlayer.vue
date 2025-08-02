@@ -57,9 +57,9 @@
       </div>
 
       <div class="iframe-container">
-        <!-- Iframe without sandbox restrictions for EmbedSu and mobile devices -->
+        <!-- Iframe without sandbox restrictions for specific sources and mobile devices -->
         <iframe
-          v-if="currentEmbedUrl && (isVidLink || isMobileDevice || isEmbedSu)"
+          v-if="currentEmbedUrl && (isVidLink || isMobileDevice || isEmbedSu || isSmashyStream)"
           :src="currentEmbedUrl"
           width="100%"
           height="100%"
@@ -76,7 +76,7 @@
 
         <!-- Desktop iframe with sandbox for other sources -->
         <iframe
-          v-if="currentEmbedUrl && !isVidLink && !isMobileDevice && !isEmbedSu"
+          v-if="currentEmbedUrl && !isVidLink && !isMobileDevice && !isEmbedSu && !isSmashyStream"
           :src="currentEmbedUrl"
           width="100%"
           height="100%"
@@ -195,6 +195,10 @@ export default {
 
     const isEmbedSu = computed(() => {
       return currentSource.value?.name?.toLowerCase().includes('embedsu') || false
+    })
+
+    const isSmashyStream = computed(() => {
+      return currentSource.value?.name?.toLowerCase().includes('smashy') || false
     })
 
     const isMobileDevice = computed(() => {
@@ -321,6 +325,7 @@ export default {
       showSourceInfo,
       isVidLink,
       isEmbedSu,
+      isSmashyStream,
       isMobileDevice,
       backdropUrl,
       currentSource,
